@@ -1,7 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Initialize Prisma client with pg adapter for PostgreSQL
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function setUserPassword(email: string, password: string) {
   try {
@@ -20,6 +25,7 @@ async function setUserPassword(email: string, password: string) {
     throw error;
   } finally {
     await prisma.$disconnect();
+    await pool.end();
   }
 }
 
