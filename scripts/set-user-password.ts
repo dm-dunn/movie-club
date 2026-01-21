@@ -10,6 +10,18 @@ const prisma = new PrismaClient({ adapter });
 
 async function setUserPassword(email: string, password: string) {
   try {
+    // First check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!existingUser) {
+      console.error(`✗ User with email "${email}" not found in database.`);
+      console.log("\nTo see all users, run: npm run db:list-users");
+      console.log("To create users, run: npm run db:seed");
+      process.exit(1);
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
