@@ -1,11 +1,10 @@
-services:
+databases:
   # PostgreSQL Database
-  - type: pserv
-    name: movie-club-db
-    env: docker
+  - name: movie-club-db
     plan: free
     region: oregon
 
+services:
   # Next.js Web Service
   - type: web
     name: movie-club
