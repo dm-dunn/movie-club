@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma dev status)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run db:studio:local:*)",
+      "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx prisma migrate dev:*)",
+      "Bash($env:DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\")",
+      "Bash(npm run db:push:local:*)",
+      "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npm run db:seed:*)",
+      "Bash(npm run db:seed:local:*)",
+      "Bash(npm run type-check:*)"
+    ]
+  }
+}

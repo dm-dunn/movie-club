@@ -1,64 +1,195 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { User } from "lucide-react";
+import { CurrentWatchlist } from "@/components/current-watchlist";
+import { HallOfFame } from "@/components/hall-of-fame";
+import { ComingSoon } from "@/components/coming-soon";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+
+  // Load profile picture from localStorage on mount
+  useEffect(() => {
+    const savedProfilePic = localStorage.getItem("userProfilePicture");
+    if (savedProfilePic) {
+      setProfilePictureUrl(savedProfilePic);
+    }
+  }, []);
+  // Mock data - will be replaced with actual data from database
+  const mockWatchlist = [
+    {
+      id: "1",
+      title: "The Shawshank Redemption",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+    },
+    {
+      id: "2",
+      title: "The Godfather",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+      pickerName: "Sarah",
+      pickerProfilePicture: null,
+    },
+  ];
+
+  const mockHallOfFame = [
+    {
+      id: "3",
+      title: "Pulp Fiction",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+      pickerName: "Mike",
+      pickerProfilePicture: null,
+      averageRating: 4.8,
+    },
+    {
+      id: "4",
+      title: "The Dark Knight",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+      pickerName: "Emma",
+      pickerProfilePicture: null,
+      averageRating: 4.7,
+    },
+    {
+      id: "5",
+      title: "Inception",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+      averageRating: 4.6,
+    },
+    {
+      id: "6",
+      title: "Fight Club",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      pickerName: "Sarah",
+      pickerProfilePicture: null,
+      averageRating: 4.5,
+    },
+    {
+      id: "7",
+      title: "The Matrix",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+      pickerName: "Mike",
+      pickerProfilePicture: null,
+      averageRating: 4.4,
+    },
+    {
+      id: "8",
+      title: "Goodfellas",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+      averageRating: 4.3,
+    },
+    {
+      id: "9",
+      title: "The Silence of the Lambs",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/uS9m8OBk1A8eM9I042bx8XXpqAq.jpg",
+      pickerName: "Emma",
+      pickerProfilePicture: null,
+      averageRating: 4.2,
+    },
+    {
+      id: "10",
+      title: "Forrest Gump",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
+      pickerName: "Sarah",
+      pickerProfilePicture: null,
+      averageRating: 4.1,
+    },
+    {
+      id: "11",
+      title: "The Usual Suspects",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/9Xw0I5RV2ZqNLpul6lMcsWSCcoI.jpg",
+      pickerName: "Mike",
+      pickerProfilePicture: null,
+      averageRating: 4.0,
+    },
+    {
+      id: "12",
+      title: "The Prestige",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/1o80kd3r7ZgnxyxZOb0wb0blPyS.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+      averageRating: 3.9,
+    },
+  ];
+
+  const mockUser = {
+    name: "John Doe",
+    profilePictureUrl: null,
+  };
+
+  const mockPersonalTop4 = [
+    {
+      id: "7",
+      title: "Interstellar",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+      pickerName: "Mike",
+    },
+  ];
+
+  const mockPersonalPicks = [
+    {
+      id: "1",
+      title: "The Shawshank Redemption",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+    },
+    {
+      id: "5",
+      title: "Inception",
+      posterUrl:
+        "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+      pickerName: "John",
+      pickerProfilePicture: profilePictureUrl,
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-primary/20">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-center relative">
+          <h1 className="text-4xl font-bold text-secondary">The Movie Club</h1>
+          <div className="absolute right-4">
+            <Link href="/profile">
+              <Button
+                variant="ghost"
+                className="rounded-full hover:bg-secondary group"
+                aria-label="User profile"
+              >
+                <User className="size-6 text-accent group-hover:!text-primary transition-colors" />
+              </Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6 space-y-8">
+        <CurrentWatchlist movies={mockWatchlist} />
+        <HallOfFame movies={mockHallOfFame} />
+        <ComingSoon />
       </main>
     </div>
   );
