@@ -4,14 +4,7 @@ services:
     name: movie-club-db
     env: docker
     plan: free
-    repo: https://github.com/render-examples/postgresql
-    envVars:
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: POSTGRES_USER
-        value: movieclub
-      - key: POSTGRES_DB
-        value: movieclub_production
+    region: oregon
 
   # Next.js Web Service
   - type: web
