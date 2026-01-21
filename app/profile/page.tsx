@@ -6,69 +6,85 @@ import { ProfilePictureUpload } from "@/components/profile-picture-upload";
 import { MovieCard } from "@/components/movie-card";
 import { Button } from "@/components/ui/button";
 
+type Movie = {
+  id: string;
+  title: string;
+  posterUrl: string | null;
+  pickerName: string;
+  pickerProfilePicture: string | null;
+};
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  profilePictureUrl: string | null;
+};
+
 export default function ProfilePage() {
-  // Mock data - will be replaced with actual data from database
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
-    null,
-  );
+  const [user, setUser] = useState<User | null>(null);
+  const [personalTop4, setPersonalTop4] = useState<Movie[]>([]);
+  const [personalPicks, setPersonalPicks] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
-  // Load profile picture from localStorage on mount
+  // Fetch data from API on mount
   useEffect(() => {
     setIsClient(true);
-    const savedProfilePic = localStorage.getItem("userProfilePicture");
-    console.log(savedProfilePic);
-    if (savedProfilePic) {
-      setProfilePictureUrl(savedProfilePic);
+
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const [userRes, top4Res, picksRes] = await Promise.all([
+          fetch("/api/user/profile"),
+          fetch("/api/user/top-4"),
+          fetch("/api/user/picks"),
+        ]);
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUser(userData);
+        }
+
+        if (top4Res.ok) {
+          const top4Data = await top4Res.json();
+          setPersonalTop4(top4Data);
+        }
+
+        if (picksRes.ok) {
+          const picksData = await picksRes.json();
+          setPersonalPicks(picksData);
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    fetchData();
   }, []);
 
   if (!isClient) {
     return null; // Prevents SSR issues
   }
 
-  // Handle profile picture upload and save to localStorage
+  // Handle profile picture upload
   const handleProfilePictureUpload = (url: string) => {
-    setProfilePictureUrl(url);
-    localStorage.setItem("userProfilePicture", url);
+    if (user) {
+      setUser({ ...user, profilePictureUrl: url });
+    }
   };
 
-  const mockUser = {
-    name: "John Doe",
-    profilePictureUrl: profilePictureUrl,
-  };
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-secondary">Loading...</p>
+      </div>
+    );
+  }
 
-  const mockPersonalTop4 = [
-    {
-      id: "7",
-      title: "Interstellar",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
-      pickerName: "Mike",
-      pickerProfilePicture: null,
-    },
-  ];
-
-  const mockPersonalPicks = [
-    {
-      id: "1",
-      title: "The Shawshank Redemption",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-    },
-    {
-      id: "5",
-      title: "Inception",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-    },
-  ];
-
-  const initials = mockUser.name
+  const initials = user.name
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -98,12 +114,12 @@ export default function ProfilePage() {
         <section className="flex flex-col items-center">
           <div className="flex flex-col items-center gap-3 mb-8">
             <ProfilePictureUpload
-              currentPictureUrl={mockUser.profilePictureUrl}
+              currentPictureUrl={user.profilePictureUrl}
               userInitials={initials}
               onUploadSuccess={handleProfilePictureUpload}
             />
             <h2 className="text-sm font-semibold text-secondary">
-              {mockUser.name}
+              {user.name}
             </h2>
           </div>
         </section>
@@ -114,11 +130,11 @@ export default function ProfilePage() {
           <p className="text-xs text-secondary/70 mb-6">
             My highest-rated movies from our group watchlist
           </p>
-          {mockPersonalTop4.length === 0 ? (
+          {personalTop4.length === 0 ? (
             <p className="text-secondary text-center py-8">No rankings yet</p>
           ) : (
             <div className="flex flex-wrap gap-4 justify-center max-w-[800px]">
-              {mockPersonalTop4.map((movie) => (
+              {personalTop4.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   title={movie.title}
@@ -134,13 +150,13 @@ export default function ProfilePage() {
         {/* Personal Picks */}
         <section className="flex flex-col items-center">
           <h3 className="text-2xl font-bold mb-6 text-secondary">My Picks</h3>
-          {mockPersonalPicks.length === 0 ? (
+          {personalPicks.length === 0 ? (
             <p className="text-secondary text-center py-8">
               You haven't picked any movies yet
             </p>
           ) : (
             <div className="flex flex-wrap gap-4 justify-center max-w-[800px]">
-              {mockPersonalPicks.map((movie) => (
+              {personalPicks.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   title={movie.title}

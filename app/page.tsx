@@ -8,162 +8,51 @@ import { HallOfFame } from "@/components/hall-of-fame";
 import { ComingSoon } from "@/components/coming-soon";
 import { Button } from "@/components/ui/button";
 
+type Movie = {
+  id: string;
+  title: string;
+  posterUrl: string | null;
+  pickerName: string;
+  pickerProfilePicture: string | null;
+};
+
+type HallOfFameMovie = Movie & {
+  averageRating: number;
+};
+
 export default function Home() {
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [watchlist, setWatchlist] = useState<Movie[]>([]);
+  const [hallOfFame, setHallOfFame] = useState<HallOfFameMovie[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load profile picture from localStorage on mount
+  // Fetch data from API on mount
   useEffect(() => {
-    const savedProfilePic = localStorage.getItem("userProfilePicture");
-    if (savedProfilePic) {
-      setProfilePictureUrl(savedProfilePic);
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const [watchlistRes, hallOfFameRes] = await Promise.all([
+          fetch("/api/movies/current"),
+          fetch("/api/movies/hall-of-fame"),
+        ]);
+
+        if (watchlistRes.ok) {
+          const watchlistData = await watchlistRes.json();
+          setWatchlist(watchlistData);
+        }
+
+        if (hallOfFameRes.ok) {
+          const hallOfFameData = await hallOfFameRes.json();
+          setHallOfFame(hallOfFameData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    fetchData();
   }, []);
-  // Mock data - will be replaced with actual data from database
-  const mockWatchlist = [
-    {
-      id: "1",
-      title: "The Shawshank Redemption",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-    },
-    {
-      id: "2",
-      title: "The Godfather",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
-      pickerName: "Sarah",
-      pickerProfilePicture: null,
-    },
-  ];
-
-  const mockHallOfFame = [
-    {
-      id: "3",
-      title: "Pulp Fiction",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
-      pickerName: "Mike",
-      pickerProfilePicture: null,
-      averageRating: 4.8,
-    },
-    {
-      id: "4",
-      title: "The Dark Knight",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-      pickerName: "Emma",
-      pickerProfilePicture: null,
-      averageRating: 4.7,
-    },
-    {
-      id: "5",
-      title: "Inception",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-      averageRating: 4.6,
-    },
-    {
-      id: "6",
-      title: "Fight Club",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
-      pickerName: "Sarah",
-      pickerProfilePicture: null,
-      averageRating: 4.5,
-    },
-    {
-      id: "7",
-      title: "The Matrix",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
-      pickerName: "Mike",
-      pickerProfilePicture: null,
-      averageRating: 4.4,
-    },
-    {
-      id: "8",
-      title: "Goodfellas",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-      averageRating: 4.3,
-    },
-    {
-      id: "9",
-      title: "The Silence of the Lambs",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/uS9m8OBk1A8eM9I042bx8XXpqAq.jpg",
-      pickerName: "Emma",
-      pickerProfilePicture: null,
-      averageRating: 4.2,
-    },
-    {
-      id: "10",
-      title: "Forrest Gump",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
-      pickerName: "Sarah",
-      pickerProfilePicture: null,
-      averageRating: 4.1,
-    },
-    {
-      id: "11",
-      title: "The Usual Suspects",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/9Xw0I5RV2ZqNLpul6lMcsWSCcoI.jpg",
-      pickerName: "Mike",
-      pickerProfilePicture: null,
-      averageRating: 4.0,
-    },
-    {
-      id: "12",
-      title: "The Prestige",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/1o80kd3r7ZgnxyxZOb0wb0blPyS.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-      averageRating: 3.9,
-    },
-  ];
-
-  const mockUser = {
-    name: "John Doe",
-    profilePictureUrl: null,
-  };
-
-  const mockPersonalTop4 = [
-    {
-      id: "7",
-      title: "Interstellar",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
-      pickerName: "Mike",
-    },
-  ];
-
-  const mockPersonalPicks = [
-    {
-      id: "1",
-      title: "The Shawshank Redemption",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-    },
-    {
-      id: "5",
-      title: "Inception",
-      posterUrl:
-        "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-      pickerName: "John",
-      pickerProfilePicture: profilePictureUrl,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,9 +76,17 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 space-y-8">
-        <CurrentWatchlist movies={mockWatchlist} />
-        <HallOfFame movies={mockHallOfFame} />
-        <ComingSoon />
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-secondary">Loading...</p>
+          </div>
+        ) : (
+          <>
+            <CurrentWatchlist movies={watchlist} />
+            <HallOfFame movies={hallOfFame} />
+            <ComingSoon />
+          </>
+        )}
       </main>
     </div>
   );
