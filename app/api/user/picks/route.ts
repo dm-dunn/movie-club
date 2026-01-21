@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
   try {
-    // TODO: Replace with actual authenticated user once auth is implemented
-    const user = await prisma.user.findFirst({
-      where: {
-        isActive: true,
-      },
-    });
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "No active users found" },
-        { status: 404 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
+
+    const user = { id: session.user.id };
 
     const picks = await prisma.moviePick.findMany({
       where: {

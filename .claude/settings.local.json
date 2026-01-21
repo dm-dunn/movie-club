@@ -15,7 +15,13 @@
       "Bash(npm run type-check:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npm run db:migrate:local:*)",
+      "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx prisma migrate diff:*)",
+      "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx prisma migrate resolve:*)",
+      "Bash(cmd /c \"set DATABASE_URL=postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public && npx prisma migrate resolve --applied 20260118221659_init\")",
+      "Bash(psql:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx tsx:*)"
     ]
   }
 }

@@ -18,6 +18,7 @@ model User {
   id                String   @id @default(uuid())
   name              String
   email             String   @unique
+  password          String
   profilePictureUrl String?  @map("profile_picture_url")
   isAdmin           Boolean  @default(false) @map("is_admin")
   isActive          Boolean  @default(true) @map("is_active")
