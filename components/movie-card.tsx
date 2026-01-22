@@ -1,8 +1,5 @@
-"use client";
-
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect, useState } from "react";
 
 interface MovieCardProps {
   title: string;
@@ -27,39 +24,6 @@ export function MovieCard({
     .join("")
     .toUpperCase();
 
-  // Random shimmer effect for gold borders
-  const [shimmerCorner, setShimmerCorner] = useState<
-    "top-left" | "top-right" | "bottom-left" | "bottom-right" | null
-  >(null);
-
-  useEffect(() => {
-    if (borderStyle !== "gold") return;
-
-    const triggerShimmer = () => {
-      const corners = [
-        "top-left",
-        "top-right",
-        "bottom-left",
-        "bottom-right",
-      ] as const;
-      const randomCorner = corners[Math.floor(Math.random() * corners.length)];
-      setShimmerCorner(randomCorner);
-
-      // Reset after animation duration
-      setTimeout(() => setShimmerCorner(null), 800);
-
-      // Schedule next shimmer at random interval (1-10 seconds)
-      const nextInterval = Math.random() * 9000 + 1000;
-      setTimeout(triggerShimmer, nextInterval);
-    };
-
-    // Start the shimmer cycle
-    const initialDelay = Math.random() * 9000 + 1000;
-    const timeout = setTimeout(triggerShimmer, initialDelay);
-
-    return () => clearTimeout(timeout);
-  }, [borderStyle]);
-
   // Define border styles
   const borderClasses = {
     none: "",
@@ -71,6 +35,12 @@ export function MovieCard({
     none: "",
     gold: "p-3.5 pb-6",
     amc: "p-2.5",
+  };
+
+  const textMarginClasses = {
+    none: "mt-0",
+    gold: "mt-[15px]",
+    amc: "mt-0",
   };
 
   return (
@@ -89,33 +59,8 @@ export function MovieCard({
             No Image
           </div>
         )}
-        {/* Gold shimmer effects for each corner */}
-        {borderStyle === "gold" && shimmerCorner && (
-          <>
-            {shimmerCorner === "top-left" && (
-              <div className="absolute -top-[14px] -left-[14px] w-12 h-12 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/80 via-transparent to-transparent animate-corner-shimmer" />
-              </div>
-            )}
-            {shimmerCorner === "top-right" && (
-              <div className="absolute -top-[14px] -right-[14px] w-12 h-12 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-bl from-yellow-200/80 via-transparent to-transparent animate-corner-shimmer" />
-              </div>
-            )}
-            {shimmerCorner === "bottom-left" && (
-              <div className="absolute -bottom-[14px] -left-[14px] w-12 h-12 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-200/80 via-transparent to-transparent animate-corner-shimmer" />
-              </div>
-            )}
-            {shimmerCorner === "bottom-right" && (
-              <div className="absolute -bottom-[14px] -right-[14px] w-12 h-12 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-tl from-yellow-200/80 via-transparent to-transparent animate-corner-shimmer" />
-              </div>
-            )}
-          </>
-        )}
       </div>
-      <div className="flex flex-col gap-0.5">
+      <div className={`flex flex-col gap-0.5 ${textMarginClasses[borderStyle]}`}>
         <p className="font-semibold text-xs line-clamp-2 text-secondary">
           {title}
         </p>
