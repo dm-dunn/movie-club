@@ -14,9 +14,15 @@ type Movie = {
   posterUrl: string | null;
   pickerName: string;
   pickerProfilePicture: string | null;
+  userHasRated: boolean;
 };
 
-type HallOfFameMovie = Movie & {
+type HallOfFameMovie = {
+  id: string;
+  title: string;
+  posterUrl: string | null;
+  pickerName: string;
+  pickerProfilePicture: string | null;
   averageRating: number;
 };
 
@@ -26,31 +32,31 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   // Fetch data from API on mount
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const [watchlistRes, hallOfFameRes] = await Promise.all([
-          fetch("/api/movies/current"),
-          fetch("/api/movies/hall-of-fame"),
-        ]);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [watchlistRes, hallOfFameRes] = await Promise.all([
+        fetch("/api/movies/current"),
+        fetch("/api/movies/hall-of-fame"),
+      ]);
 
-        if (watchlistRes.ok) {
-          const watchlistData = await watchlistRes.json();
-          setWatchlist(watchlistData);
-        }
-
-        if (hallOfFameRes.ok) {
-          const hallOfFameData = await hallOfFameRes.json();
-          setHallOfFame(hallOfFameData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+      if (watchlistRes.ok) {
+        const watchlistData = await watchlistRes.json();
+        setWatchlist(watchlistData);
       }
-    }
 
+      if (hallOfFameRes.ok) {
+        const hallOfFameData = await hallOfFameRes.json();
+        setHallOfFame(hallOfFameData);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -82,7 +88,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <CurrentWatchlist movies={watchlist} />
+            <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
             <HallOfFame movies={hallOfFame} />
             <ComingSoon />
           </>

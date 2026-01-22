@@ -1,4 +1,17 @@
+"use client";
+
+import { useState } from "react";
 import { MovieCard } from "./movie-card";
+import { StarRating } from "./star-rating";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface WatchlistMovie {
   id: string;
@@ -6,36 +19,130 @@ interface WatchlistMovie {
   posterUrl: string | null;
   pickerName: string;
   pickerProfilePicture?: string | null;
+  userHasRated: boolean;
 }
 
 interface CurrentWatchlistProps {
   movies: WatchlistMovie[];
+  onRefresh: () => void;
 }
 
-export function CurrentWatchlist({ movies }: CurrentWatchlistProps) {
+export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
+  const [selectedMovie, setSelectedMovie] = useState<WatchlistMovie | null>(
+    null
+  );
+  const [rating, setRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRateClick = (movie: WatchlistMovie) => {
+    setSelectedMovie(movie);
+    setRating(0);
+  };
+
+  const handleSubmitRating = async () => {
+    if (!selectedMovie || rating === 0) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/movies/${selectedMovie.id}/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rating }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit rating");
+      }
+
+      toast.success("Rating submitted successfully!");
+      setSelectedMovie(null);
+      setRating(0);
+      onRefresh();
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      toast.error("Failed to submit rating. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <section className="w-full flex flex-col items-center">
-      <h2 className="text-xl font-bold mb-4 text-secondary">
-        Current Watchlist
-      </h2>
-      {movies.length === 0 ? (
-        <p className="text-secondary text-center py-8">
-          No movies in the watchlist yet
-        </p>
-      ) : (
-        <div className="flex flex-wrap gap-4 justify-center max-w-[800px]">
-          {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              title={movie.title}
-              posterUrl={movie.posterUrl}
-              pickerName={movie.pickerName}
-              pickerProfilePicture={movie.pickerProfilePicture}
-              borderStyle="gold"
-            />
-          ))}
-        </div>
-      )}
-    </section>
+    <>
+      <section className="w-full flex flex-col items-center">
+        <h2 className="text-xl font-bold mb-4 text-secondary">
+          Current Watchlist
+        </h2>
+        {movies.length === 0 ? (
+          <p className="text-secondary text-center py-8">
+            No movies in the watchlist yet
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-4 justify-center max-w-[800px]">
+            {movies.map((movie) => (
+              <div key={movie.id} className="flex flex-col items-center gap-2">
+                <MovieCard
+                  title={movie.title}
+                  posterUrl={movie.posterUrl}
+                  pickerName={movie.pickerName}
+                  pickerProfilePicture={movie.pickerProfilePicture}
+                  borderStyle="gold"
+                />
+                {movie.userHasRated ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-[180px]"
+                    disabled
+                  >
+                    Watched
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-[180px]"
+                    onClick={() => handleRateClick(movie)}
+                  >
+                    Rate
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <Dialog open={!!selectedMovie} onOpenChange={() => setSelectedMovie(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rate {selectedMovie?.title}</DialogTitle>
+            <DialogDescription>
+              How would you rate this movie? (1-5 stars)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-6 py-4">
+            <StarRating value={rating} onChange={setRating} />
+            <div className="flex gap-3 w-full">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedMovie(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitRating}
+                disabled={rating === 0 || isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Rating"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
     const movies = await prisma.movie.findMany({
       where: {
         status: "CURRENT",
@@ -18,6 +23,13 @@ export async function GET() {
             },
           },
         },
+        ratings: userId
+          ? {
+              where: {
+                userId: userId,
+              },
+            }
+          : false,
       },
       orderBy: {
         createdAt: "desc",
@@ -31,6 +43,7 @@ export async function GET() {
       posterUrl: movie.posterUrl,
       pickerName: movie.moviePicks[0]?.user.name || "Unknown",
       pickerProfilePicture: movie.moviePicks[0]?.user.profilePictureUrl || null,
+      userHasRated: userId ? movie.ratings.length > 0 : false,
     }));
 
     return NextResponse.json(transformedMovies);

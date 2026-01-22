@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { ProfilePictureUpload } from "@/components/profile-picture-upload";
 import { MovieCard } from "@/components/movie-card";
 import { Button } from "@/components/ui/button";
+import { MoviePicker } from "@/components/movie-picker";
+import Image from "next/image";
 
 type Movie = {
   id: string;
@@ -12,6 +14,7 @@ type Movie = {
   posterUrl: string | null;
   pickerName: string;
   pickerProfilePicture: string | null;
+  year?: number;
 };
 
 type User = {
@@ -21,10 +24,28 @@ type User = {
   profilePictureUrl: string | null;
 };
 
+type PickerStatus = {
+  status: "current" | "next" | "upcoming" | "completed" | "not_in_queue";
+  position: number | null;
+  roundNumber: number | null;
+  currentPicker: {
+    id: string;
+    name: string;
+    profilePictureUrl: string | null;
+  } | null;
+  moviePick: {
+    id: string;
+    title: string;
+    posterUrl: string | null;
+    year: number | null;
+  } | null;
+};
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [personalTop4, setPersonalTop4] = useState<Movie[]>([]);
   const [personalPicks, setPersonalPicks] = useState<Movie[]>([]);
+  const [pickerStatus, setPickerStatus] = useState<PickerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
@@ -35,10 +56,11 @@ export default function ProfilePage() {
     async function fetchData() {
       try {
         setLoading(true);
-        const [userRes, top4Res, picksRes] = await Promise.all([
+        const [userRes, top4Res, picksRes, statusRes] = await Promise.all([
           fetch("/api/user/profile"),
           fetch("/api/user/top-4"),
           fetch("/api/user/picks"),
+          fetch("/api/user/picker-status"),
         ]);
 
         if (userRes.ok) {
@@ -55,6 +77,11 @@ export default function ProfilePage() {
           const picksData = await picksRes.json();
           setPersonalPicks(picksData);
         }
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setPickerStatus(statusData);
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       } finally {
@@ -64,6 +91,24 @@ export default function ProfilePage() {
 
     fetchData();
   }, []);
+
+  const refetchPickerStatus = async () => {
+    try {
+      const statusRes = await fetch("/api/user/picker-status");
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        setPickerStatus(statusData);
+      }
+
+      const picksRes = await fetch("/api/user/picks");
+      if (picksRes.ok) {
+        const picksData = await picksRes.json();
+        setPersonalPicks(picksData);
+      }
+    } catch (error) {
+      console.error("Error refetching picker status:", error);
+    }
+  };
 
   if (!isClient) {
     return null; // Prevents SSR issues
@@ -123,6 +168,72 @@ export default function ProfilePage() {
             </h2>
           </div>
         </section>
+
+        {/* Movie Picker Status Section */}
+        {pickerStatus && pickerStatus.status !== "not_in_queue" && (
+          <section className="flex flex-col items-center">
+            <div className="w-full max-w-[600px]">
+              {pickerStatus.status === "current" && (
+                <div className="bg-muted/20 rounded-lg p-6">
+                  <MoviePicker onPickSubmitted={refetchPickerStatus} />
+                </div>
+              )}
+
+              {pickerStatus.status === "next" && (
+                <div className="bg-muted/20 rounded-lg p-6 text-center">
+                  <h3 className="text-xl font-bold text-secondary mb-2">
+                    Movie Club Pick
+                  </h3>
+                  <p className="text-secondary">
+                    You're up next! Check back again soon.
+                  </p>
+                </div>
+              )}
+
+              {pickerStatus.status === "upcoming" && (
+                <div className="bg-muted/20 rounded-lg p-6 text-center">
+                  <h3 className="text-xl font-bold text-secondary mb-2">
+                    Movie Club Pick
+                  </h3>
+                  <p className="text-secondary">
+                    You're up after the next group. Check back again soon.
+                  </p>
+                </div>
+              )}
+
+              {pickerStatus.status === "completed" && pickerStatus.moviePick && (
+                <div className="bg-muted/20 rounded-lg p-6">
+                  <h3 className="text-xl font-bold text-secondary mb-4 text-center">
+                    Movie Club Pick
+                  </h3>
+                  <div className="flex flex-col items-center">
+                    {pickerStatus.moviePick.posterUrl ? (
+                      <Image
+                        src={pickerStatus.moviePick.posterUrl}
+                        alt={pickerStatus.moviePick.title}
+                        width={185}
+                        height={278}
+                        className="rounded-lg shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-[185px] h-[278px] bg-muted rounded-lg flex items-center justify-center">
+                        <p className="text-secondary/50 text-sm">No Poster</p>
+                      </div>
+                    )}
+                    <p className="text-secondary font-semibold mt-3">
+                      {pickerStatus.moviePick.title}
+                    </p>
+                    {pickerStatus.moviePick.year && (
+                      <p className="text-secondary/70 text-sm">
+                        {pickerStatus.moviePick.year}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Personal Top 4 */}
         <section className="flex flex-col items-center">
