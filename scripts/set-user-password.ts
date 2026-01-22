@@ -8,17 +8,17 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-async function setUserPassword(email: string, password: string) {
+async function setUserPassword(username: string, password: string) {
   try {
     // First check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (!existingUser) {
-      console.error(`✗ User with email "${email}" not found in database.`);
+      console.error(`✗ User with username "${username}" not found in database.`);
       console.log("\nTo see all users, run: npm run db:list-users");
-      console.log("To create users, run: npm run db:seed");
+      console.log("To create users, run: npm run db:add-user");
       process.exit(1);
     }
 
@@ -27,11 +27,11 @@ async function setUserPassword(email: string, password: string) {
 
     // Update the user
     const user = await prisma.user.update({
-      where: { email },
+      where: { username },
       data: { password: hashedPassword },
     });
 
-    console.log(`✓ Password set successfully for user: ${user.name} (${user.email})`);
+    console.log(`✓ Password set successfully for user: ${user.name} (${user.username})`);
   } catch (error) {
     console.error("Error setting password:", error);
     throw error;
@@ -41,13 +41,13 @@ async function setUserPassword(email: string, password: string) {
   }
 }
 
-// Get email and password from command line arguments
-const email = process.argv[2];
+// Get username and password from command line arguments
+const username = process.argv[2];
 const password = process.argv[3];
 
-if (!email || !password) {
-  console.error("Usage: tsx scripts/set-user-password.ts <email> <password>");
+if (!username || !password) {
+  console.error("Usage: tsx scripts/set-user-password.ts <username> <password>");
   process.exit(1);
 }
 
-setUserPassword(email, password);
+setUserPassword(username, password);

@@ -2,11 +2,11 @@
 
 ## Overview
 
-The Movie Club app now uses credential-based authentication with persistent sessions. Users must log in with their email and password to access their profile.
+The Movie Club app uses credential-based authentication with persistent sessions. Users must log in with their username and password to access their profile.
 
 ## Features
 
-- Credential-based login (email + password)
+- Credential-based login (username + password)
 - Persistent sessions with 30-day cookie
 - Protected profile routes
 - Secure password hashing with bcrypt
@@ -27,56 +27,78 @@ To generate a secure `NEXTAUTH_SECRET`, run:
 openssl rand -base64 32
 ```
 
-## Setting User Passwords
+## Managing Users
 
-### For New Users
+### Adding New Users
 
-When creating users in your database, you need to set their password. Use the provided script:
+Create users with username, name, and password:
 
 ```bash
 # Production (on Render)
-npm run db:set-password <email> <password>
+npm run db:add-user "Full Name" username1 'password'
+
+# Add an admin user
+npm run db:add-user "Admin Name" admin1 'password' --admin
 
 # Local development
-DATABASE_URL="postgresql://..." npx tsx scripts/set-user-password.ts user@example.com their-password
+npm run db:add-user:local "Full Name" username1 'password'
 ```
 
-### Password Script Usage
+**Username Format:** Use firstname + number (e.g., john1, sarah1, dalton1)
 
-The `scripts/set-user-password.ts` script:
-1. Takes an email and password as arguments
-2. Hashes the password using bcrypt
-3. Updates the user in the database
+### Listing Users
 
-Example:
+View all users in the database:
+
 ```bash
-npx tsx scripts/set-user-password.ts john@example.com SecurePassword123
+# Production
+npm run db:list-users
+
+# Local
+npm run db:list-users:local
+```
+
+### Setting/Updating Passwords
+
+Update an existing user's password:
+
+```bash
+# Production
+npm run db:set-password username1 'newpassword'
+
+# Local
+npm run db:set-password:local username1 'newpassword'
 ```
 
 ### Recommended Workflow
 
-1. Create users in your database (using seed scripts or manually)
-2. Generate a secure temporary password for each user
-3. Use the set-password script to assign passwords
-4. Send credentials to users securely (via email, Slack, etc.)
-5. Instruct users to change their password on first login
+1. Add users with the add-user script
+2. Send username and temporary password to users securely
+3. Users can log in with their username and password
+4. For password resets, use the set-password script
 
-## Database Migration
+## Database Migrations
 
-The password field has been added to the User model. When deploying to production:
+Two migrations have been created for the authentication system:
 
-1. The migration will run automatically via `prisma migrate deploy` (configured in build script)
-2. The migration adds a `password` column to the `users` table
-3. Existing users will get a default password that should be changed immediately
+1. **Add Password Field** (`20260121151708_add_password_to_user/migration.sql`)
+   - Adds `password` column to users table
 
-Migration file: `prisma/migrations/20260121151708_add_password_to_user/migration.sql`
+2. **Add Username Field** (`20260122104319_add_username_field/migration.sql`)
+   - Adds `username` column to users table (unique, required)
+   - Makes `email` column optional
+   - Auto-generates usernames for existing users (firstname + 1)
+
+When deploying to production:
+- Migrations run automatically via `prisma migrate deploy` (configured in build script)
+- Existing users will have usernames auto-generated from their first name
 
 ## Login Flow
 
 1. User navigates to `/profile`
 2. Middleware checks if user is authenticated
 3. If not authenticated, user is redirected to `/login`
-4. User enters email and password
+4. User enters username and password
 5. Credentials are validated against the database
 6. On success, session cookie is created (30-day expiry)
 7. User is redirected to `/profile`

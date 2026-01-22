@@ -13,6 +13,7 @@ async function listUsers() {
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         isActive: true,
         isAdmin: true,
@@ -25,13 +26,14 @@ async function listUsers() {
     if (users.length === 0) {
       console.log("No users found in the database.");
       console.log("\nTo create users, you can:");
-      console.log("1. Add a user: npm run db:add-user \"Name\" email@example.com 'password'");
+      console.log("1. Add a user: npm run db:add-user \"Name\" username1 'password'");
       console.log("2. Run the seed script: npm run db:seed");
     } else {
       console.log(`\nFound ${users.length} user(s):\n`);
       users.forEach((user, index) => {
         console.log(`${index + 1}. ${user.name}`);
-        console.log(`   Email: ${user.email}`);
+        console.log(`   Username: ${user.username}`);
+        console.log(`   Email: ${user.email || "N/A"}`);
         console.log(`   Active: ${user.isActive}`);
         console.log(`   Admin: ${user.isAdmin}`);
         console.log("");
