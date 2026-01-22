@@ -31,6 +31,7 @@ export function CurrentWatchlist({ movies }: CurrentWatchlistProps) {
               posterUrl={movie.posterUrl}
               pickerName={movie.pickerName}
               pickerProfilePicture={movie.pickerProfilePicture}
+              borderStyle="gold"
             />
           ))}
         </div>

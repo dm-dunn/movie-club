@@ -35,6 +35,7 @@ export function HallOfFame({ movies }: HallOfFameProps) {
                   pickerName={movie.pickerName}
                   pickerProfilePicture={movie.pickerProfilePicture}
                   averageRating={movie.averageRating}
+                  borderStyle="gold"
                 />
               </div>
             ))}

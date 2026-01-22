@@ -141,6 +141,7 @@ export default function ProfilePage() {
                   posterUrl={movie.posterUrl}
                   pickerName={movie.pickerName}
                   pickerProfilePicture={movie.pickerProfilePicture}
+                  borderStyle="gold"
                 />
               ))}
             </div>
@@ -163,6 +164,7 @@ export default function ProfilePage() {
                   posterUrl={movie.posterUrl}
                   pickerName={movie.pickerName}
                   pickerProfilePicture={movie.pickerProfilePicture}
+                  borderStyle="gold"
                 />
               ))}
             </div>

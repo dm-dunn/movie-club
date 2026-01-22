@@ -19,6 +19,7 @@
     "db:set-password:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" tsx scripts/set-user-password.ts",
     "db:list-users": "tsx scripts/list-users.ts",
     "db:list-users:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" tsx scripts/list-users.ts",
+    "db:resolve-migration": "tsx scripts/resolve-migration.ts",
     "db:studio": "prisma studio",
     "db:studio:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" prisma studio",
     "db:migrate:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" prisma migrate dev",

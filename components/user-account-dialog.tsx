@@ -85,6 +85,7 @@ export function UserAccountDialog({
                     title={movie.title}
                     posterUrl={movie.posterUrl}
                     pickerName={movie.pickerName}
+                    borderStyle="gold"
                   />
                 ))}
               </div>
@@ -106,6 +107,7 @@ export function UserAccountDialog({
                     title={movie.title}
                     posterUrl={movie.posterUrl}
                     pickerName={movie.pickerName}
+                    borderStyle="gold"
                   />
                 ))}
               </div>

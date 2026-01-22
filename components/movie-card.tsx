@@ -7,6 +7,7 @@ interface MovieCardProps {
   pickerName: string;
   pickerProfilePicture?: string | null;
   averageRating?: number;
+  borderStyle?: "gold" | "amc" | "none";
 }
 
 export function MovieCard({
@@ -15,15 +16,30 @@ export function MovieCard({
   pickerName,
   pickerProfilePicture,
   averageRating,
+  borderStyle = "none",
 }: MovieCardProps) {
   const pickerInitials = pickerName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  // Define border styles
+  const borderClasses = {
+    none: "rounded-sm",
+    gold: "rounded-sm shadow-[0_0_0_8px_#B8860B,0_0_0_10px_#DAA520,0_0_0_12px_#B8860B,0_0_0_14px_#8B7500] relative before:absolute before:inset-0 before:rounded-sm before:shadow-[inset_0_0_0_2px_rgba(218,165,32,0.4)]",
+    amc: "rounded-sm shadow-[0_0_0_3px_#000000,0_0_0_6px_#DC143C,0_0_0_9px_#000000] relative",
+  };
+
+  const containerClasses = {
+    none: "",
+    gold: "p-3.5",
+    amc: "p-2.5",
+  };
+
   return (
-    <div className="w-[180px] flex flex-col gap-2">
-      <div className="relative aspect-[2/3] w-full bg-muted/50 rounded-sm overflow-hidden">
+    <div className={`w-[180px] flex flex-col gap-2 ${containerClasses[borderStyle]}`}>
+      <div className={`relative aspect-[2/3] w-full bg-muted/50 overflow-hidden ${borderClasses[borderStyle]}`}>
         {posterUrl ? (
           <Image
             src={posterUrl}
