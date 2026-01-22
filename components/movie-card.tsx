@@ -27,13 +27,13 @@ export function MovieCard({
   // Define border styles
   const borderClasses = {
     none: "rounded-sm",
-    gold: "rounded-sm shadow-[0_0_0_8px_#B8860B,0_0_0_10px_#DAA520,0_0_0_12px_#B8860B,0_0_0_14px_#8B7500] relative before:absolute before:inset-0 before:rounded-sm before:shadow-[inset_0_0_0_2px_rgba(218,165,32,0.4)]",
+    gold: "shadow-[0_0_0_8px_#B8860B,0_0_0_10px_#DAA520,0_0_0_12px_#B8860B,0_0_0_14px_#8B7500] relative before:absolute before:inset-0 before:shadow-[inset_0_0_0_2px_rgba(218,165,32,0.4)] animate-gold-shimmer",
     amc: "rounded-sm shadow-[0_0_0_3px_#000000,0_0_0_6px_#DC143C,0_0_0_9px_#000000] relative",
   };
 
   const containerClasses = {
     none: "",
-    gold: "p-3.5",
+    gold: "p-3.5 pb-6",
     amc: "p-2.5",
   };
 
