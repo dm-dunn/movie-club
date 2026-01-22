@@ -6,10 +6,11 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const response = await axios.get(`${TMDB_BASE_URL}/movie/${params.id}`, {
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${id}`, {
       params: {
         api_key: TMDB_API_KEY,
       },

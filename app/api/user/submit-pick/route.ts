@@ -7,18 +7,11 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const userId = session.user.id;
 
     const body = await request.json();
     const { tmdbId, title, year, posterUrl, backdropUrl, overview, runtimeMinutes } = body;
@@ -26,7 +19,7 @@ export async function POST(request: Request) {
     // Verify user is current picker
     const currentPicker = await prisma.pickerQueue.findFirst({
       where: {
-        userId: user.id,
+        userId: userId,
         isCurrent: true,
         completedAt: null,
       },
@@ -64,7 +57,7 @@ export async function POST(request: Request) {
     await prisma.moviePick.create({
       data: {
         movieId: movie.id,
-        userId: user.id,
+        userId: userId,
         pickRound: currentPicker.roundNumber,
       },
     });

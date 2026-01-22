@@ -7,18 +7,11 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const userId = session.user.id;
 
     // Find current picker (isCurrent = true)
     const currentPicker = await prisma.pickerQueue.findFirst({
@@ -37,7 +30,7 @@ export async function GET() {
     // Find this user's queue entry
     const userQueueEntry = await prisma.pickerQueue.findFirst({
       where: {
-        userId: user.id,
+        userId: userId,
         completedAt: null, // Only get active queue entries
       },
     });
@@ -45,7 +38,7 @@ export async function GET() {
     // If user has completed their pick, get their movie pick
     const completedPick = await prisma.pickerQueue.findFirst({
       where: {
-        userId: user.id,
+        userId: userId,
         completedAt: { not: null },
       },
       orderBy: {
@@ -57,7 +50,7 @@ export async function GET() {
     if (completedPick) {
       const pick = await prisma.moviePick.findFirst({
         where: {
-          userId: user.id,
+          userId: userId,
           pickRound: completedPick.roundNumber,
         },
         include: {
