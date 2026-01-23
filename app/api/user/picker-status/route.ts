@@ -52,36 +52,40 @@ export async function GET() {
     // Check if user is in used pickers
     const isInUsed = activeSeason.usedPickerIds.includes(userId);
 
-    // Get user's movie pick if they've completed
+    // Get user's movie pick for the current season (most recent if multiple)
     let moviePick = null;
-    if (isInUsed) {
-      const pick = await prisma.moviePick.findFirst({
-        where: {
-          userId: userId,
-          pickRound: activeSeason.seasonNumber,
-        },
-        include: {
-          movie: {
-            select: {
-              id: true,
-              title: true,
-              posterUrl: true,
-              year: true,
-            },
+    const pick = await prisma.moviePick.findFirst({
+      where: {
+        userId: userId,
+        pickRound: activeSeason.seasonNumber,
+      },
+      include: {
+        movie: {
+          select: {
+            id: true,
+            title: true,
+            posterUrl: true,
+            year: true,
           },
         },
-      });
+      },
+      orderBy: {
+        pickedAt: 'desc',
+      },
+    });
 
-      if (pick) {
-        moviePick = pick.movie;
-      }
+    if (pick) {
+      moviePick = pick.movie;
     }
 
     // Determine user's status
     let status: "current" | "next" | "upcoming" | "completed" | "not_in_queue";
     let position: number | null = null;
 
-    if (!isInAvailable && !isInUsed) {
+    // If user has a movie pick for this season, they've completed
+    if (moviePick) {
+      status = "completed";
+    } else if (!isInAvailable && !isInUsed) {
       status = "not_in_queue";
     } else if (isInUsed) {
       status = "completed";

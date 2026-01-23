@@ -347,26 +347,31 @@ async function seedDatabase() {
   }
   console.log("");
 
-  // Step 5: Initialize Picker Queue (Round 2 - fresh start)
-  console.log("🎲 Initializing picker queue for Round 2...");
-  const activeUsers = Array.from(userMap.entries()).filter(
-    ([username]) => username !== "Extra Credit",
-  );
+  // Step 5: Initialize Picking Season
+  console.log("🎲 Initializing picking season...");
+  const allUserIds = Array.from(userMap.values());
 
-  // Shuffle for random initial order
-  const shuffled = activeUsers.sort(() => Math.random() - 0.5);
-
-  for (const [index, [username, userId]] of shuffled.entries()) {
-    await prisma.pickerQueue.create({
-      data: {
-        userId,
-        position: index + 1,
-        roundNumber: 2,
-        isCurrent: index === 0, // First person is current picker
-      },
-    });
+  // Shuffle all user IDs using Fisher-Yates algorithm
+  const shuffledUserIds = [...allUserIds];
+  for (let i = shuffledUserIds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledUserIds[i], shuffledUserIds[j]] = [shuffledUserIds[j], shuffledUserIds[i]];
   }
-  console.log(`   ✓ Queue initialized with ${shuffled.length} users\n`);
+
+  // Get the next 3 pickers
+  const nextThreePickers = shuffledUserIds.slice(0, 3);
+
+  // Create Season 1
+  await prisma.pickingSeason.create({
+    data: {
+      seasonNumber: 1,
+      availablePickerIds: nextThreePickers,
+      usedPickerIds: [],
+      currentPickerId: nextThreePickers[0],
+      isActive: true,
+    },
+  });
+  console.log(`   ✓ Season 1 initialized with 3 pickers\n`);
 
   // Step 6: Seed Award Categories (for Phase 2)
   console.log("🏆 Creating award categories...");

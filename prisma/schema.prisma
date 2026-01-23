@@ -30,7 +30,6 @@ model User {
   ratings           Rating[]
   moviePicks        MoviePick[]
   personalRankings  PersonalRanking[]
-  pickerQueue       PickerQueue[]
   votes             Vote[]
 
   @@map("users")
@@ -119,23 +118,6 @@ model PersonalRanking {
   @@unique([userId, rank]) // Can't have two movies at same rank
   @@unique([userId, movieId]) // Can't rank same movie twice
   @@map("personal_rankings")
-}
-
-model PickerQueue {
-  id           String    @id @default(uuid())
-  userId       String    @map("user_id")
-  position     Int
-  roundNumber  Int       @map("round_number")
-  isCurrent    Boolean   @default(false) @map("is_current")
-  completedAt  DateTime? @map("completed_at")
-
-  // Relations
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([roundNumber, position])
-  @@index([roundNumber, position])
-  @@index([isCurrent])
-  @@map("picker_queue")
 }
 
 model PickingSeason {
