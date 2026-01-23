@@ -24,6 +24,8 @@
     "db:set-current": "tsx scripts/set-current-movie.ts",
     "db:set-current:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" tsx scripts/set-current-movie.ts",
     "db:resolve-migration": "tsx scripts/resolve-migration.ts",
+    "db:migrate-watchedby": "tsx scripts/migrate-production-watchedby.ts",
+    "db:migrate-watchedby:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" tsx scripts/migrate-production-watchedby.ts",
     "db:studio": "prisma studio",
     "db:studio:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" prisma studio",
     "db:migrate:local": "cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" prisma migrate dev",
