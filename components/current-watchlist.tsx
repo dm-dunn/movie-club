@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { MovieCard } from "./movie-card";
 import { StarRating } from "./star-rating";
+import { LoginModal } from "./login-modal";
 import {
   Dialog,
   DialogContent,
@@ -28,15 +30,31 @@ interface CurrentWatchlistProps {
 }
 
 export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
+  const { data: session } = useSession();
   const [selectedMovie, setSelectedMovie] = useState<WatchlistMovie | null>(
     null
   );
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingMovie, setPendingMovie] = useState<WatchlistMovie | null>(null);
 
   const handleRateClick = (movie: WatchlistMovie) => {
+    if (!session) {
+      setPendingMovie(movie);
+      setShowLoginModal(true);
+      return;
+    }
     setSelectedMovie(movie);
     setRating(0);
+  };
+
+  const handleLoginSuccess = () => {
+    if (pendingMovie) {
+      setSelectedMovie(pendingMovie);
+      setPendingMovie(null);
+      setRating(0);
+    }
   };
 
   const handleSubmitRating = async () => {
@@ -70,6 +88,11 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
 
   return (
     <>
+      <LoginModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        onLoginSuccess={handleLoginSuccess}
+      />
       <section className="w-full flex flex-col items-center">
         <h2 className="text-xl font-bold mb-4 text-secondary">
           Current Watchlist
@@ -102,7 +125,7 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
                   <Button
                     variant="default"
                     size="sm"
-                    className="w-[180px]"
+                    className="w-[180px] bg-primary text-[oklch(0.88_0.06_75)] border-2 border-[#B8860B] hover:bg-primary/90 hover:border-[#DAA520]"
                     onClick={() => handleRateClick(movie)}
                   >
                     Rate

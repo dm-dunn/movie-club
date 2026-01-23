@@ -45,15 +45,16 @@ model Movie {
   posterUrl           String?   @map("poster_url")
   backdropUrl         String?   @map("backdrop_url")
   overview            String?   @db.Text
-  
+
   // Oscar data
   academyNominations  Int       @default(0) @map("academy_nominations")
   academyWins         Int       @default(0) @map("academy_wins")
-  
+
   // Status tracking
   status              MovieStatus @default(UNWATCHED)
   watchedDate         DateTime?   @map("watched_date") @db.Date
-  
+  watchedBy           String[]    @default([]) @map("watched_by")
+
   // Metadata
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")

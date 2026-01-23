@@ -66,12 +66,25 @@ export async function POST(
       });
     }
 
-    // Update movie status to WATCHED after first rating
+    // Get current watchedBy array
+    const currentMovie = await prisma.movie.findUnique({
+      where: { id: movieId },
+      select: { watchedBy: true },
+    });
+
+    // Add user to watchedBy array if not already present
+    const watchedByArray = currentMovie?.watchedBy || [];
+    if (!watchedByArray.includes(session.user.id)) {
+      watchedByArray.push(session.user.id);
+    }
+
+    // Update movie status to WATCHED after first rating and update watchedBy
     await prisma.movie.update({
       where: { id: movieId },
       data: {
         status: "WATCHED",
         watchedDate: new Date(),
+        watchedBy: watchedByArray,
       },
     });
 

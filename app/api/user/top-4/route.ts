@@ -16,12 +16,10 @@ export async function GET() {
 
     const user = { id: session.user.id };
 
-    const rankings = await prisma.personalRanking.findMany({
+    // Get user's top 4 rated movies (highest ratings)
+    const topRatings = await prisma.rating.findMany({
       where: {
         userId: user.id,
-        rank: {
-          lte: 4, // Top 4 rankings
-        },
       },
       include: {
         movie: {
@@ -40,18 +38,19 @@ export async function GET() {
         },
       },
       orderBy: {
-        rank: "asc",
+        rating: "desc",
       },
+      take: 4,
     });
 
     // Transform data to match component expectations
-    const transformedMovies = rankings.map((ranking) => ({
-      id: ranking.movie.id,
-      title: ranking.movie.title,
-      posterUrl: ranking.movie.posterUrl,
-      pickerName: ranking.movie.moviePicks[0]?.user.name || "Unknown",
+    const transformedMovies = topRatings.map((rating) => ({
+      id: rating.movie.id,
+      title: rating.movie.title,
+      posterUrl: rating.movie.posterUrl,
+      pickerName: rating.movie.moviePicks[0]?.user.name || "Unknown",
       pickerProfilePicture:
-        ranking.movie.moviePicks[0]?.user.profilePictureUrl || null,
+        rating.movie.moviePicks[0]?.user.profilePictureUrl || null,
     }));
 
     return NextResponse.json(transformedMovies);

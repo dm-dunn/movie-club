@@ -203,9 +203,12 @@ export default function ProfilePage() {
 
               {pickerStatus.status === "completed" && pickerStatus.moviePick && (
                 <div className="bg-muted/20 rounded-lg p-6">
-                  <h3 className="text-xl font-bold text-secondary mb-4 text-center">
+                  <h3 className="text-xl font-bold text-secondary mb-2 text-center">
                     Movie Club Pick
                   </h3>
+                  <p className="text-secondary text-center mb-4">
+                    You picked <span className="font-semibold">"{pickerStatus.moviePick.title}"</span> this round.
+                  </p>
                   <div className="flex flex-col items-center">
                     {pickerStatus.moviePick.posterUrl ? (
                       <Image
@@ -220,12 +223,9 @@ export default function ProfilePage() {
                         <p className="text-secondary/50 text-sm">No Poster</p>
                       </div>
                     )}
-                    <p className="text-secondary font-semibold mt-3">
-                      {pickerStatus.moviePick.title}
-                    </p>
                     {pickerStatus.moviePick.year && (
-                      <p className="text-secondary/70 text-sm">
-                        {pickerStatus.moviePick.year}
+                      <p className="text-secondary/70 text-sm mt-2">
+                        ({pickerStatus.moviePick.year})
                       </p>
                     )}
                   </div>

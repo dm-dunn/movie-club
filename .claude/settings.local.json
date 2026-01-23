@@ -26,7 +26,11 @@
       "Bash(dir:*)",
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
-      "Bash(timeout 10 npm run dev:*)"
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(tsx:*)",
+      "Bash(npx tsx:*)",
+      "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx tsx scripts/fix-movie-titles.ts:*)",
+      "Bash(npx cross-env:*)"
     ]
   }
 }
