@@ -6,9 +6,11 @@ export async function GET() {
     const movies = await prisma.movie.findMany({
       where: {
         status: "WATCHED",
+        averageRating: {
+          not: null,
+        },
       },
       include: {
-        ratings: true,
         moviePicks: {
           include: {
             user: {
@@ -20,31 +22,22 @@ export async function GET() {
           },
         },
       },
+      orderBy: {
+        averageRating: "desc",
+      },
+      take: 12, // Top 12 movies
     });
 
-    // Calculate average ratings and transform data
-    const transformedMovies = movies
-      .map((movie) => {
-        const totalRating = movie.ratings.reduce(
-          (sum, rating) => sum + Number(rating.rating),
-          0
-        );
-        const averageRating =
-          movie.ratings.length > 0 ? totalRating / movie.ratings.length : 0;
-
-        return {
-          id: movie.id,
-          title: movie.title,
-          posterUrl: movie.posterUrl,
-          pickerName: movie.moviePicks[0]?.user.name || "Unknown",
-          pickerProfilePicture:
-            movie.moviePicks[0]?.user.profilePictureUrl || null,
-          averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
-        };
-      })
-      .filter((movie) => movie.averageRating > 0) // Only include rated movies
-      .sort((a, b) => b.averageRating - a.averageRating) // Sort by rating descending
-      .slice(0, 12); // Top 12 movies
+    // Transform data
+    const transformedMovies = movies.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      posterUrl: movie.posterUrl,
+      pickerName: movie.moviePicks[0]?.user.name || "Unknown",
+      pickerProfilePicture:
+        movie.moviePicks[0]?.user.profilePictureUrl || null,
+      averageRating: Math.round(Number(movie.averageRating) * 10) / 10, // Round to 1 decimal
+    }));
 
     return NextResponse.json(transformedMovies);
   } catch (error) {

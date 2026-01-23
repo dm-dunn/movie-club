@@ -47,7 +47,7 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
       return;
     }
     setSelectedMovie(movie);
-    setRating(0);
+    setRating(movie.userRating || 0);
   };
 
   const handleLoginSuccess = () => {
@@ -75,7 +75,11 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
         throw new Error("Failed to submit rating");
       }
 
-      toast.success("Rating submitted successfully!");
+      toast.success(
+        selectedMovie.userHasRated
+          ? "Rating updated successfully!"
+          : "Rating submitted successfully!"
+      );
       setSelectedMovie(null);
       setRating(0);
       onRefresh();
@@ -114,11 +118,21 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
                   borderStyle="gold"
                 />
                 {movie.userHasRated && movie.userRating ? (
-                  <StarRating
-                    value={movie.userRating}
-                    size={24}
-                    readOnly
-                  />
+                  <div className="relative group">
+                    <StarRating
+                      value={movie.userRating}
+                      size={24}
+                      readOnly
+                    />
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-[oklch(0.88_0.06_75)] border-2 border-[#B8860B] hover:bg-primary/90 hover:border-[#DAA520]"
+                      onClick={() => handleRateClick(movie)}
+                    >
+                      Edit Rating
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     variant="default"
@@ -138,7 +152,9 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
       <Dialog open={!!selectedMovie} onOpenChange={() => setSelectedMovie(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rate {selectedMovie?.title}</DialogTitle>
+            <DialogTitle>
+              {selectedMovie?.userHasRated ? "Edit" : "Rate"} {selectedMovie?.title}
+            </DialogTitle>
             <DialogDescription>
               How would you rate this movie? (1-5 stars)
             </DialogDescription>

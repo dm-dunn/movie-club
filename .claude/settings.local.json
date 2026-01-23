@@ -30,7 +30,8 @@
       "Bash(tsx:*)",
       "Bash(npx tsx:*)",
       "Bash(cross-env DATABASE_URL=\"postgresql://postgres:Jeterfor3khits!@localhost:5432/movieclub_dev?schema=public\" npx tsx scripts/fix-movie-titles.ts:*)",
-      "Bash(npx cross-env:*)"
+      "Bash(npx cross-env:*)",
+      "Bash(ls:*)"
     ]
   }
 }

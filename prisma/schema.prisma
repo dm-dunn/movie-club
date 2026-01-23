@@ -54,6 +54,7 @@ model Movie {
   status              MovieStatus @default(UNWATCHED)
   watchedDate         DateTime?   @map("watched_date") @db.Date
   watchedBy           String[]    @default([]) @map("watched_by")
+  averageRating       Decimal?    @map("average_rating") @db.Decimal(3, 2) // 0.00 to 5.00
 
   // Metadata
   createdAt           DateTime  @default(now()) @map("created_at")

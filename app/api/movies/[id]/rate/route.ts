@@ -66,6 +66,19 @@ export async function POST(
       });
     }
 
+    // Get all ratings for this movie to calculate average
+    const allRatings = await prisma.rating.findMany({
+      where: { movieId },
+      select: { rating: true },
+    });
+
+    // Calculate average rating
+    const averageRating =
+      allRatings.length > 0
+        ? allRatings.reduce((sum, r) => sum + Number(r.rating), 0) /
+          allRatings.length
+        : null;
+
     // Get current watchedBy array
     const currentMovie = await prisma.movie.findUnique({
       where: { id: movieId },
@@ -76,15 +89,16 @@ export async function POST(
     const watchedByArray = currentMovie?.watchedBy || [];
     if (!watchedByArray.includes(session.user.id)) {
       watchedByArray.push(session.user.id);
-
-      // Update the watchedBy array (keep movie status as CURRENT)
-      await prisma.movie.update({
-        where: { id: movieId },
-        data: {
-          watchedBy: watchedByArray,
-        },
-      });
     }
+
+    // Update the movie with watchedBy array and average rating
+    await prisma.movie.update({
+      where: { id: movieId },
+      data: {
+        watchedBy: watchedByArray,
+        averageRating,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
