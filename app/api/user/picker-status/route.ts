@@ -89,16 +89,12 @@ export async function GET() {
       status = "not_in_queue";
     } else if (isInUsed) {
       status = "completed";
-    } else if (activeSeason.currentPickerId === userId) {
+    } else if (isInAvailable) {
+      // All users in availablePickerIds can pick simultaneously
       status = "current";
       position = userIndexInAvailable + 1;
-    } else if (userIndexInAvailable === 1) {
-      // User is next in line
-      status = "next";
-      position = userIndexInAvailable + 1;
     } else {
-      status = "upcoming";
-      position = userIndexInAvailable + 1;
+      status = "not_in_queue";
     }
 
     return NextResponse.json({

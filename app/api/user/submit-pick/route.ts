@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { tmdbId, title, year, posterUrl, backdropUrl, overview, runtimeMinutes } = body;
 
-    // Get active season and verify user is current picker
+    // Get active season and verify user is in available pickers
     const activeSeason = await prisma.pickingSeason.findFirst({
       where: { isActive: true },
     });
@@ -28,10 +28,26 @@ export async function POST(request: Request) {
       );
     }
 
-    if (activeSeason.currentPickerId !== userId) {
+    // Check if user is in the available pickers array
+    if (!activeSeason.availablePickerIds.includes(userId)) {
       return NextResponse.json(
         { error: "It's not your turn to pick" },
         { status: 403 }
+      );
+    }
+
+    // Check if user has already picked for this season
+    const existingPick = await prisma.moviePick.findFirst({
+      where: {
+        userId: userId,
+        pickRound: activeSeason.seasonNumber,
+      },
+    });
+
+    if (existingPick) {
+      return NextResponse.json(
+        { error: "You have already picked for this season" },
+        { status: 400 }
       );
     }
 
@@ -65,25 +81,8 @@ export async function POST(request: Request) {
       },
     });
 
-    // Move current picker from available to used
-    const updatedAvailableIds = activeSeason.availablePickerIds.filter(
-      (id) => id !== userId
-    );
-    const updatedUsedIds = [...activeSeason.usedPickerIds, userId];
-
-    // Determine next current picker
-    const nextPickerId = updatedAvailableIds.length > 0 ? updatedAvailableIds[0] : null;
-
-    // Update season
-    await prisma.pickingSeason.update({
-      where: { id: activeSeason.id },
-      data: {
-        availablePickerIds: updatedAvailableIds,
-        usedPickerIds: updatedUsedIds,
-        currentPickerId: nextPickerId,
-        completedAt: updatedAvailableIds.length === 0 ? new Date() : null,
-      },
-    });
+    // Note: User stays in availablePickerIds array
+    // Admin will manually move them to usedPickerIds when ready to reveal
 
     return NextResponse.json({
       success: true,
