@@ -103,19 +103,23 @@ async function main() {
     });
   } else {
     targetStatus = 'CURRENT';
-    successMessage = `✅ Set "${movie.title}" as CURRENT movie`;
 
-    // First, clear any other CURRENT movies
-    await prisma.movie.updateMany({
+    // Check how many CURRENT movies we already have
+    const currentMoviesCount = await prisma.movie.count({
       where: {
         status: 'CURRENT',
       },
-      data: {
-        status: 'UNWATCHED',
-      },
     });
 
-    // Then set this movie as CURRENT
+    if (currentMoviesCount >= 4) {
+      console.error(`\n❌ Cannot add more than 4 CURRENT movies. Currently have ${currentMoviesCount} CURRENT movies.`);
+      console.log('Use "npm run db:set-current clear" to clear some CURRENT movies first.\n');
+      process.exit(1);
+    }
+
+    successMessage = `✅ Set "${movie.title}" as CURRENT movie (${currentMoviesCount + 1}/4)`;
+
+    // Set this movie as CURRENT
     await prisma.movie.update({
       where: {
         id: movieIdOrCommand,
