@@ -16,16 +16,19 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { tmdbId, title, year, posterUrl, backdropUrl, overview, runtimeMinutes } = body;
 
-    // Verify user is current picker
-    const currentPicker = await prisma.pickerQueue.findFirst({
-      where: {
-        userId: userId,
-        isCurrent: true,
-        completedAt: null,
-      },
+    // Get active season and verify user is current picker
+    const activeSeason = await prisma.pickingSeason.findFirst({
+      where: { isActive: true },
     });
 
-    if (!currentPicker) {
+    if (!activeSeason) {
+      return NextResponse.json(
+        { error: "No active picking season" },
+        { status: 400 }
+      );
+    }
+
+    if (activeSeason.currentPickerId !== userId) {
       return NextResponse.json(
         { error: "It's not your turn to pick" },
         { status: 403 }
@@ -58,51 +61,29 @@ export async function POST(request: Request) {
       data: {
         movieId: movie.id,
         userId: userId,
-        pickRound: currentPicker.roundNumber,
+        pickRound: activeSeason.seasonNumber,
       },
     });
 
-    // Mark current picker as completed
-    await prisma.pickerQueue.update({
-      where: { id: currentPicker.id },
+    // Move current picker from available to used
+    const updatedAvailableIds = activeSeason.availablePickerIds.filter(
+      (id) => id !== userId
+    );
+    const updatedUsedIds = [...activeSeason.usedPickerIds, userId];
+
+    // Determine next current picker
+    const nextPickerId = updatedAvailableIds.length > 0 ? updatedAvailableIds[0] : null;
+
+    // Update season
+    await prisma.pickingSeason.update({
+      where: { id: activeSeason.id },
       data: {
-        isCurrent: false,
-        completedAt: new Date(),
+        availablePickerIds: updatedAvailableIds,
+        usedPickerIds: updatedUsedIds,
+        currentPickerId: nextPickerId,
+        completedAt: updatedAvailableIds.length === 0 ? new Date() : null,
       },
     });
-
-    // Find next picker in queue
-    const nextPicker = await prisma.pickerQueue.findFirst({
-      where: {
-        roundNumber: currentPicker.roundNumber,
-        position: currentPicker.position + 1,
-        completedAt: null,
-      },
-    });
-
-    if (nextPicker) {
-      // Set next picker in same round as current
-      await prisma.pickerQueue.update({
-        where: { id: nextPicker.id },
-        data: { isCurrent: true },
-      });
-    } else {
-      // Look for first picker in next round
-      const nextRoundPicker = await prisma.pickerQueue.findFirst({
-        where: {
-          roundNumber: currentPicker.roundNumber + 1,
-          position: 1,
-          completedAt: null,
-        },
-      });
-
-      if (nextRoundPicker) {
-        await prisma.pickerQueue.update({
-          where: { id: nextRoundPicker.id },
-          data: { isCurrent: true },
-        });
-      }
-    }
 
     return NextResponse.json({
       success: true,

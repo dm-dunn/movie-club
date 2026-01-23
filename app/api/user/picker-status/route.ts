@@ -13,45 +13,52 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Find current picker (isCurrent = true)
-    const currentPicker = await prisma.pickerQueue.findFirst({
-      where: { isCurrent: true },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            profilePictureUrl: true,
-          },
+    // Get active season
+    const activeSeason = await prisma.pickingSeason.findFirst({
+      where: { isActive: true },
+    });
+
+    if (!activeSeason) {
+      return NextResponse.json({
+        status: "not_in_queue",
+        position: null,
+        seasonNumber: null,
+        currentPicker: null,
+        moviePick: null,
+      });
+    }
+
+    // Get current picker details
+    let currentPicker = null;
+    if (activeSeason.currentPickerId) {
+      const currentPickerUser = await prisma.user.findUnique({
+        where: { id: activeSeason.currentPickerId },
+        select: {
+          id: true,
+          name: true,
+          profilePictureUrl: true,
         },
-      },
-    });
+      });
 
-    // Find this user's queue entry
-    const userQueueEntry = await prisma.pickerQueue.findFirst({
-      where: {
-        userId: userId,
-        completedAt: null, // Only get active queue entries
-      },
-    });
+      if (currentPickerUser) {
+        currentPicker = currentPickerUser;
+      }
+    }
 
-    // If user has completed their pick, get their movie pick
-    const completedPick = await prisma.pickerQueue.findFirst({
-      where: {
-        userId: userId,
-        completedAt: { not: null },
-      },
-      orderBy: {
-        completedAt: "desc",
-      },
-    });
+    // Check if user is in available pickers
+    const userIndexInAvailable = activeSeason.availablePickerIds.indexOf(userId);
+    const isInAvailable = userIndexInAvailable !== -1;
 
+    // Check if user is in used pickers
+    const isInUsed = activeSeason.usedPickerIds.includes(userId);
+
+    // Get user's movie pick if they've completed
     let moviePick = null;
-    if (completedPick) {
+    if (isInUsed) {
       const pick = await prisma.moviePick.findFirst({
         where: {
           userId: userId,
-          pickRound: completedPick.roundNumber,
+          pickRound: activeSeason.seasonNumber,
         },
         include: {
           movie: {
@@ -74,48 +81,27 @@ export async function GET() {
     let status: "current" | "next" | "upcoming" | "completed" | "not_in_queue";
     let position: number | null = null;
 
-    if (!userQueueEntry && !completedPick) {
+    if (!isInAvailable && !isInUsed) {
       status = "not_in_queue";
-    } else if (completedPick && !userQueueEntry) {
+    } else if (isInUsed) {
       status = "completed";
-    } else if (userQueueEntry?.isCurrent) {
+    } else if (activeSeason.currentPickerId === userId) {
       status = "current";
-      position = userQueueEntry.position;
-    } else if (userQueueEntry && currentPicker) {
-      // Check if user is in the same round and next position
-      const isNextInRound =
-        userQueueEntry.roundNumber === currentPicker.roundNumber &&
-        userQueueEntry.position === currentPicker.position + 1;
-
-      // Check if user is in the next round at position 1 and current picker is at position 3
-      const isNextRound =
-        userQueueEntry.roundNumber === currentPicker.roundNumber + 1 &&
-        userQueueEntry.position === 1 &&
-        currentPicker.position === 3;
-
-      if (isNextInRound || isNextRound) {
-        status = "next";
-        position = userQueueEntry.position;
-      } else {
-        status = "upcoming";
-        position = userQueueEntry.position;
-      }
+      position = userIndexInAvailable + 1;
+    } else if (userIndexInAvailable === 1) {
+      // User is next in line
+      status = "next";
+      position = userIndexInAvailable + 1;
     } else {
       status = "upcoming";
-      position = userQueueEntry?.position ?? null;
+      position = userIndexInAvailable + 1;
     }
 
     return NextResponse.json({
       status,
       position,
-      roundNumber: userQueueEntry?.roundNumber ?? completedPick?.roundNumber ?? null,
-      currentPicker: currentPicker
-        ? {
-            id: currentPicker.user.id,
-            name: currentPicker.user.name,
-            profilePictureUrl: currentPicker.user.profilePictureUrl,
-          }
-        : null,
+      seasonNumber: activeSeason.seasonNumber,
+      currentPicker,
       moviePick,
     });
   } catch (error) {

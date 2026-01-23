@@ -207,7 +207,7 @@ export default function ProfilePage() {
                     Movie Club Pick
                   </h3>
                   <p className="text-secondary text-center mb-4">
-                    You picked <span className="font-semibold">"{pickerStatus.moviePick.title}"</span> this round.
+                    You picked <span className="font-semibold">{pickerStatus.moviePick.title}</span> this season, wait until next season!
                   </p>
                   <div className="flex flex-col items-center">
                     {pickerStatus.moviePick.posterUrl ? (

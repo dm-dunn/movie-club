@@ -55,6 +55,7 @@ model Movie {
   watchedDate         DateTime?   @map("watched_date") @db.Date
   watchedBy           String[]    @default([]) @map("watched_by")
   averageRating       Decimal?    @map("average_rating") @db.Decimal(3, 2) // 0.00 to 5.00
+  viewingSeason       String?     @map("viewing_season") // e.g., "Season 1", "Classic Era"
 
   // Metadata
   createdAt           DateTime  @default(now()) @map("created_at")
@@ -135,6 +136,20 @@ model PickerQueue {
   @@index([roundNumber, position])
   @@index([isCurrent])
   @@map("picker_queue")
+}
+
+model PickingSeason {
+  id                  String    @id @default(uuid())
+  seasonNumber        Int       @unique @map("season_number")
+  availablePickerIds  String[]  @default([]) @map("available_picker_ids")
+  usedPickerIds       String[]  @default([]) @map("used_picker_ids")
+  currentPickerId     String?   @map("current_picker_id")
+  isActive            Boolean   @default(true) @map("is_active")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  completedAt         DateTime? @map("completed_at")
+
+  @@index([isActive])
+  @@map("picking_seasons")
 }
 
 // ============================================================================
