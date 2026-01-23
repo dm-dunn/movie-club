@@ -5,12 +5,31 @@ import { Star } from "lucide-react";
 
 interface StarRatingProps {
   value: number;
-  onChange: (rating: number) => void;
+  onChange?: (rating: number) => void;
   size?: number;
+  readOnly?: boolean;
 }
 
-export function StarRating({ value, onChange, size = 32 }: StarRatingProps) {
+export function StarRating({ value, onChange, size = 32, readOnly = false }: StarRatingProps) {
   const [hoverValue, setHoverValue] = useState(0);
+
+  if (readOnly) {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={size}
+            className={`${
+              star <= value
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-400"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-1">
@@ -18,7 +37,7 @@ export function StarRating({ value, onChange, size = 32 }: StarRatingProps) {
         <button
           key={star}
           type="button"
-          onClick={() => onChange(star)}
+          onClick={() => onChange?.(star)}
           onMouseEnter={() => setHoverValue(star)}
           onMouseLeave={() => setHoverValue(0)}
           className="transition-transform hover:scale-110"

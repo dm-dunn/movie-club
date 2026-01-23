@@ -22,6 +22,7 @@ interface WatchlistMovie {
   pickerName: string;
   pickerProfilePicture?: string | null;
   userHasRated: boolean;
+  userRating: number | null;
 }
 
 interface CurrentWatchlistProps {
@@ -112,15 +113,12 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
                   pickerProfilePicture={movie.pickerProfilePicture}
                   borderStyle="gold"
                 />
-                {movie.userHasRated ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="w-[180px]"
-                    disabled
-                  >
-                    Watched
-                  </Button>
+                {movie.userHasRated && movie.userRating ? (
+                  <StarRating
+                    value={movie.userRating}
+                    size={24}
+                    readOnly
+                  />
                 ) : (
                   <Button
                     variant="default"

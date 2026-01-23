@@ -15,6 +15,7 @@ type Movie = {
   pickerName: string;
   pickerProfilePicture: string | null;
   userHasRated: boolean;
+  userRating: number | null;
 };
 
 type HallOfFameMovie = {

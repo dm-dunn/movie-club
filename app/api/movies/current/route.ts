@@ -44,6 +44,7 @@ export async function GET() {
       pickerName: movie.moviePicks[0]?.user.name || "Unknown",
       pickerProfilePicture: movie.moviePicks[0]?.user.profilePictureUrl || null,
       userHasRated: userId ? movie.ratings.length > 0 : false,
+      userRating: userId && movie.ratings.length > 0 ? Number(movie.ratings[0].rating) : null,
     }));
 
     return NextResponse.json(transformedMovies);

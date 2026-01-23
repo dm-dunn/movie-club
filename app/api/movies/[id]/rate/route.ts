@@ -76,17 +76,15 @@ export async function POST(
     const watchedByArray = currentMovie?.watchedBy || [];
     if (!watchedByArray.includes(session.user.id)) {
       watchedByArray.push(session.user.id);
-    }
 
-    // Update movie status to WATCHED after first rating and update watchedBy
-    await prisma.movie.update({
-      where: { id: movieId },
-      data: {
-        status: "WATCHED",
-        watchedDate: new Date(),
-        watchedBy: watchedByArray,
-      },
-    });
+      // Update the watchedBy array (keep movie status as CURRENT)
+      await prisma.movie.update({
+        where: { id: movieId },
+        data: {
+          watchedBy: watchedByArray,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
