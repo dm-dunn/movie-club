@@ -1,6 +1,5 @@
-import { PrismaClient, MovieStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { MovieStatus } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 
 async function main() {
   const args = process.argv.slice(2);
