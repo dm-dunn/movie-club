@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -32,6 +35,8 @@ export async function GET() {
         { status: 404 }
       );
     }
+
+    console.log(`[Profile] Fetching user ${session.user.id}, profilePictureUrl:`, user.profilePictureUrl);
 
     return NextResponse.json(user);
   } catch (error) {

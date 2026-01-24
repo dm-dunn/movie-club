@@ -64,10 +64,13 @@ export async function POST(request: NextRequest) {
     const url = `/uploads/profile-pictures/${uniqueFilename}`;
 
     // Update the user's profile picture URL in the database
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: { profilePictureUrl: url },
     });
+
+    console.log(`[Upload] User ${session.user.id} profile picture updated to:`, url);
+    console.log(`[Upload] Verified in DB:`, updatedUser.profilePictureUrl);
 
     return NextResponse.json({ url });
   } catch (error) {
