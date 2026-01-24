@@ -49,13 +49,35 @@ export async function POST() {
       }
     }
 
-    // Move users who picked from available to used
+    // Step 1: Clear current watchlist - move CURRENT movies to WATCHED
+    const currentMoviesCleared = await prisma.movie.updateMany({
+      where: { status: "CURRENT" },
+      data: { status: "WATCHED" },
+    });
+
+    // Step 2: Get newly picked movies and set them to CURRENT (new watchlist)
+    const newlyPickedMovies = await prisma.moviePick.findMany({
+      where: {
+        userId: { in: usersWhoPicked },
+        pickRound: activeSeason.seasonNumber,
+      },
+      select: { movieId: true },
+    });
+
+    const newlyPickedMovieIds = newlyPickedMovies.map((pick) => pick.movieId);
+
+    const newMoviesAdded = await prisma.movie.updateMany({
+      where: { id: { in: newlyPickedMovieIds } },
+      data: { status: "CURRENT" },
+    });
+
+    // Step 3: Move users who picked from available to used
     const remainingAvailableIds = activeSeason.availablePickerIds.filter(
       (id) => !usersWhoPicked.includes(id)
     );
     const updatedUsedIds = [...activeSeason.usedPickerIds, ...usersWhoPicked];
 
-    // Update season
+    // Step 4: Update season
     await prisma.pickingSeason.update({
       where: { id: activeSeason.id },
       data: {
@@ -102,6 +124,8 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       message: `Revealed ${usersWhoPicked.length} picks`,
+      watchlistCleared: currentMoviesCleared.count,
+      newWatchlistAdded: newMoviesAdded.count,
       revealedPicks: picks.map((pick) => ({
         userName: pick.user.name,
         movieTitle: pick.movie.title,

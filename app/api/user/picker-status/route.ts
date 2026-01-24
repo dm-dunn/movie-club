@@ -97,12 +97,16 @@ export async function GET() {
       status = "not_in_queue";
     }
 
+    // User can change pick if they have picked AND they're still in availablePickerIds (not revealed yet)
+    const canChangePick = moviePick !== null && isInAvailable;
+
     return NextResponse.json({
       status,
       position,
       seasonNumber: activeSeason.seasonNumber,
       currentPicker,
       moviePick,
+      canChangePick,
     });
   } catch (error) {
     console.error("Error fetching picker status:", error);

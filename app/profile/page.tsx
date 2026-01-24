@@ -27,7 +27,7 @@ type User = {
 type PickerStatus = {
   status: "current" | "next" | "upcoming" | "completed" | "not_in_queue";
   position: number | null;
-  roundNumber: number | null;
+  seasonNumber: number | null;
   currentPicker: {
     id: string;
     name: string;
@@ -39,6 +39,7 @@ type PickerStatus = {
     posterUrl: string | null;
     year: number | null;
   } | null;
+  canChangePick?: boolean;
 };
 
 export default function ProfilePage() {
@@ -48,6 +49,7 @@ export default function ProfilePage() {
   const [pickerStatus, setPickerStatus] = useState<PickerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [deletingPick, setDeletingPick] = useState(false);
 
   // Fetch data from API on mount
   useEffect(() => {
@@ -107,6 +109,31 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error("Error refetching picker status:", error);
+    }
+  };
+
+  const handleChangePick = async () => {
+    if (!confirm("Are you sure you want to change your pick? Your current pick will be removed and you can choose a new movie.")) {
+      return;
+    }
+
+    setDeletingPick(true);
+    try {
+      const response = await fetch("/api/user/delete-pick", {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        await refetchPickerStatus();
+      } else {
+        const error = await response.json();
+        alert(error.error || "Failed to delete pick");
+      }
+    } catch (error) {
+      console.error("Error deleting pick:", error);
+      alert("Failed to delete pick");
+    } finally {
+      setDeletingPick(false);
     }
   };
 
@@ -207,7 +234,8 @@ export default function ProfilePage() {
                     Movie Club Pick
                   </h3>
                   <p className="text-secondary text-center mb-4">
-                    You picked <span className="font-semibold">{pickerStatus.moviePick.title}</span> this season, wait until next season!
+                    You picked <span className="font-semibold">{pickerStatus.moviePick.title}</span> this season
+                    {pickerStatus.canChangePick ? "!" : ", wait until next season!"}
                   </p>
                   <div className="flex flex-col items-center">
                     {pickerStatus.moviePick.posterUrl ? (
@@ -227,6 +255,16 @@ export default function ProfilePage() {
                       <p className="text-secondary/70 text-sm mt-2">
                         ({pickerStatus.moviePick.year})
                       </p>
+                    )}
+                    {pickerStatus.canChangePick && (
+                      <Button
+                        onClick={handleChangePick}
+                        disabled={deletingPick}
+                        variant="outline"
+                        className="mt-4"
+                      >
+                        {deletingPick ? "Changing..." : "Change Pick"}
+                      </Button>
                     )}
                   </div>
                 </div>
