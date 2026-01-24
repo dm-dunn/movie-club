@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
+import { getServerSession } from "next-auth";
+import prisma from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
@@ -50,6 +62,12 @@ export async function POST(request: NextRequest) {
 
     // Return the public URL
     const url = `/uploads/profile-pictures/${uniqueFilename}`;
+
+    // Update the user's profile picture URL in the database
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { profilePictureUrl: url },
+    });
 
     return NextResponse.json({ url });
   } catch (error) {
