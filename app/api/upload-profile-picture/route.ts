@@ -53,15 +53,21 @@ export async function POST(request: NextRequest) {
     const uploadsDir = join(process.cwd(), "public", "uploads", "profile-pictures");
     const filePath = join(uploadsDir, uniqueFilename);
 
+    console.log(`[Upload] Attempting to save file to:`, filePath);
+    console.log(`[Upload] Current working directory:`, process.cwd());
+
     // Ensure directory exists
     const { mkdir } = await import("fs/promises");
     await mkdir(uploadsDir, { recursive: true });
+    console.log(`[Upload] Directory ensured:`, uploadsDir);
 
     // Write file
     await writeFile(filePath, buffer);
+    console.log(`[Upload] File written successfully to:`, filePath);
 
     // Return the public URL
     const url = `/uploads/profile-pictures/${uniqueFilename}`;
+    console.log(`[Upload] Public URL:`, url);
 
     // Update the user's profile picture URL in the database
     const updatedUser = await prisma.user.update({
