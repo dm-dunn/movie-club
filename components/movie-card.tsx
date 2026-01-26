@@ -7,6 +7,7 @@ interface MovieCardProps {
   pickerName: string;
   pickerProfilePicture?: string | null;
   averageRating?: number;
+  userRating?: number;
   borderStyle?: "gold" | "amc" | "none";
 }
 
@@ -16,6 +17,7 @@ export function MovieCard({
   pickerName,
   pickerProfilePicture,
   averageRating,
+  userRating,
   borderStyle = "none",
 }: MovieCardProps) {
   const pickerInitials = pickerName
@@ -69,6 +71,11 @@ export function MovieCard({
             Group Agg. Rank: {averageRating.toFixed(1)}
           </p>
         )}
+        {userRating !== undefined && (
+          <p className="text-[10px] text-accent font-medium">
+            My Ranking: {userRating.toFixed(1)}
+          </p>
+        )}
         <div className="flex items-center gap-1.5">
           <Avatar className="h-4 w-4">
             <AvatarImage src={pickerProfilePicture || undefined} />
@@ -76,7 +83,9 @@ export function MovieCard({
               {pickerInitials}
             </AvatarFallback>
           </Avatar>
-          <p className="text-[10px] text-secondary">Picked by {pickerName}</p>
+          <p className="text-[10px] text-secondary">
+            {pickerName === "Extra Credit" ? pickerName : `Picked by ${pickerName}`}
+          </p>
         </div>
       </div>
     </div>

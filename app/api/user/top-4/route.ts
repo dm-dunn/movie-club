@@ -51,6 +51,7 @@ export async function GET() {
       pickerName: rating.movie.moviePicks[0]?.user.name || "Unknown",
       pickerProfilePicture:
         rating.movie.moviePicks[0]?.user.profilePictureUrl || null,
+      userRating: rating.rating,
     }));
 
     return NextResponse.json(transformedMovies);

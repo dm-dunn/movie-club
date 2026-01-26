@@ -49,6 +49,21 @@ interface UserTopTen {
   rankings: { movieTitle: string; rank: number }[];
 }
 
+interface TMDBCredits {
+  id: number;
+  cast: Array<{
+    id: number;
+    name: string;
+    gender: number;
+    order: number;
+  }>;
+  crew: Array<{
+    id: number;
+    name: string;
+    job: string;
+  }>;
+}
+
 // ============================================================================
 // TMDB API FUNCTIONS
 // ============================================================================
@@ -78,6 +93,20 @@ async function searchTMDB(
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function getMovieCredits(tmdbId: number): Promise<TMDBCredits | null> {
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${tmdbId}/credits`, {
+      params: {
+        api_key: TMDB_API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`TMDB credits fetch failed for ID ${tmdbId}:`, error);
+    return null;
+  }
 }
 
 // ============================================================================
@@ -208,6 +237,118 @@ function parseExcel(filePath: string): {
 }
 
 // ============================================================================
+// GROUP STATISTICS CALCULATION
+// ============================================================================
+
+const GROUP_MEMBER_COUNT = 9;
+
+interface PersonStats {
+  name: string;
+  count: number;
+  totalRuntime: number;
+}
+
+async function calculateAndStoreGroupStats() {
+  const watchedMovies = await prisma.movie.findMany({
+    where: { status: "WATCHED" },
+    include: {
+      castMembers: true,
+      crewMembers: {
+        where: { job: "Director" },
+      },
+    },
+  });
+
+  let totalMinutes = 0;
+  let totalNominations = 0;
+  let totalWins = 0;
+  let mostNominationsMovie: { title: string; count: number } | null = null;
+  let mostWinsMovie: { title: string; count: number } | null = null;
+
+  const actorStats: Record<string, PersonStats> = {};
+  const actressStats: Record<string, PersonStats> = {};
+  const directorStats: Record<string, PersonStats> = {};
+
+  for (const movie of watchedMovies) {
+    const runtime = movie.runtimeMinutes || 0;
+    totalMinutes += runtime;
+    totalNominations += movie.academyNominations;
+    totalWins += movie.academyWins;
+
+    if (!mostNominationsMovie || movie.academyNominations > mostNominationsMovie.count) {
+      mostNominationsMovie = { title: movie.title, count: movie.academyNominations };
+    }
+    if (!mostWinsMovie || movie.academyWins > mostWinsMovie.count) {
+      mostWinsMovie = { title: movie.title, count: movie.academyWins };
+    }
+
+    for (const cast of movie.castMembers) {
+      const key = `${cast.tmdbPersonId}-${cast.name}`;
+      if (cast.gender === 2) {
+        if (!actorStats[key]) actorStats[key] = { name: cast.name, count: 0, totalRuntime: 0 };
+        actorStats[key].count++;
+        actorStats[key].totalRuntime += runtime;
+      } else if (cast.gender === 1) {
+        if (!actressStats[key]) actressStats[key] = { name: cast.name, count: 0, totalRuntime: 0 };
+        actressStats[key].count++;
+        actressStats[key].totalRuntime += runtime;
+      }
+    }
+
+    for (const crew of movie.crewMembers) {
+      const key = `${crew.tmdbPersonId}-${crew.name}`;
+      if (!directorStats[key]) directorStats[key] = { name: crew.name, count: 0, totalRuntime: 0 };
+      directorStats[key].count++;
+      directorStats[key].totalRuntime += runtime;
+    }
+  }
+
+  const sortByCountThenRuntime = (a: PersonStats, b: PersonStats) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return b.totalRuntime - a.totalRuntime;
+  };
+
+  const topActor = Object.values(actorStats).sort(sortByCountThenRuntime)[0];
+  const topActress = Object.values(actressStats).sort(sortByCountThenRuntime)[0];
+  const topDirector = Object.values(directorStats).sort(sortByCountThenRuntime)[0];
+
+  await prisma.groupStats.upsert({
+    where: { id: "singleton" },
+    update: {
+      totalMinutesWatched: totalMinutes * GROUP_MEMBER_COUNT,
+      totalOscarNominations: totalNominations,
+      totalOscarWins: totalWins,
+      mostNominationsMovieTitle: mostNominationsMovie?.title || null,
+      mostNominationsCount: mostNominationsMovie?.count || 0,
+      mostWinsMovieTitle: mostWinsMovie?.title || null,
+      mostWinsCount: mostWinsMovie?.count || 0,
+      mostWatchedActorName: topActor?.name || null,
+      mostWatchedActorCount: topActor?.count || 0,
+      mostWatchedActressName: topActress?.name || null,
+      mostWatchedActressCount: topActress?.count || 0,
+      mostWatchedDirectorName: topDirector?.name || null,
+      mostWatchedDirectorCount: topDirector?.count || 0,
+    },
+    create: {
+      id: "singleton",
+      totalMinutesWatched: totalMinutes * GROUP_MEMBER_COUNT,
+      totalOscarNominations: totalNominations,
+      totalOscarWins: totalWins,
+      mostNominationsMovieTitle: mostNominationsMovie?.title || null,
+      mostNominationsCount: mostNominationsMovie?.count || 0,
+      mostWinsMovieTitle: mostWinsMovie?.title || null,
+      mostWinsCount: mostWinsMovie?.count || 0,
+      mostWatchedActorName: topActor?.name || null,
+      mostWatchedActorCount: topActor?.count || 0,
+      mostWatchedActressName: topActress?.name || null,
+      mostWatchedActressCount: topActress?.count || 0,
+      mostWatchedDirectorName: topDirector?.name || null,
+      mostWatchedDirectorCount: topDirector?.count || 0,
+    },
+  });
+}
+
+// ============================================================================
 // DATABASE SEEDING
 // ============================================================================
 
@@ -226,10 +367,12 @@ async function seedDatabase() {
 
   for (const username of usernames) {
     const user = await prisma.user.upsert({
-      where: { email: `${username.toLowerCase()}@movieclub.com` },
+      where: { username: username.toLowerCase() },
       update: {},
       create: {
         name: username,
+        username: username.toLowerCase(),
+        password: "placeholder", // Placeholder - users set real passwords on first login
         email: `${username.toLowerCase()}@movieclub.com`,
         isAdmin: username === "Liam", // Make Liam admin (adjust as needed)
       },
@@ -240,10 +383,12 @@ async function seedDatabase() {
 
   // Create "Extra Credit" system user
   const extraCreditUser = await prisma.user.upsert({
-    where: { email: "extracredit@movieclub.com" },
+    where: { username: "extracredit" },
     update: {},
     create: {
       name: "Extra Credit",
+      username: "extracredit",
+      password: "placeholder",
       email: "extracredit@movieclub.com",
       isAdmin: false,
     },
@@ -292,6 +437,41 @@ async function seedDatabase() {
 
     movieMap.set(movieData.title, movie.id);
     console.log(`      ✓ Created with TMDB ID: ${movie.tmdbId || "N/A"}`);
+
+    // Fetch and store cast/crew credits
+    if (tmdbData?.id) {
+      const credits = await getMovieCredits(tmdbData.id);
+      if (credits) {
+        // Store top 10 cast members
+        const topCast = credits.cast.slice(0, 10);
+        for (const cast of topCast) {
+          await prisma.castMember.create({
+            data: {
+              movieId: movie.id,
+              tmdbPersonId: cast.id,
+              name: cast.name,
+              gender: cast.gender,
+              castOrder: cast.order,
+            },
+          });
+        }
+
+        // Store directors
+        const directors = credits.crew.filter((c) => c.job === "Director");
+        for (const director of directors) {
+          await prisma.crewMember.create({
+            data: {
+              movieId: movie.id,
+              tmdbPersonId: director.id,
+              name: director.name,
+              job: "Director",
+            },
+          });
+        }
+        console.log(`      ✓ Added ${topCast.length} cast, ${directors.length} directors`);
+      }
+      await delay(350); // Rate limit for credits API
+    }
 
     // Create movie pick assignment
     if (movieData.pickedBy) {
@@ -405,6 +585,11 @@ async function seedDatabase() {
     console.log(`   ✓ Created "${category.name}"`);
   }
   console.log("");
+
+  // Step 7: Calculate and store Group Statistics
+  console.log("📊 Calculating group statistics...");
+  await calculateAndStoreGroupStats();
+  console.log("   ✓ Group statistics calculated\n");
 
   // Final Statistics
   const stats = {

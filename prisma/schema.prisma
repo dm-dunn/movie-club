@@ -65,6 +65,8 @@ model Movie {
   moviePicks          MoviePick[]
   personalRankings    PersonalRanking[]
   votes               Vote[]
+  castMembers         CastMember[]
+  crewMembers         CrewMember[]
 
   @@map("movies")
 }
@@ -183,6 +185,65 @@ model Vote {
   @@index([votingPeriodId])
   @@index([categoryId])
   @@map("votes")
+}
+
+// ============================================================================
+// CAST & CREW TRACKING
+// ============================================================================
+
+model CastMember {
+  id            String @id @default(uuid())
+  movieId       String @map("movie_id")
+  tmdbPersonId  Int    @map("tmdb_person_id")
+  name          String
+  gender        Int    // 1=female, 2=male, 0=unknown
+  castOrder     Int    @map("cast_order")
+
+  // Relations
+  movie         Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, tmdbPersonId])
+  @@index([name])
+  @@map("cast_members")
+}
+
+model CrewMember {
+  id            String @id @default(uuid())
+  movieId       String @map("movie_id")
+  tmdbPersonId  Int    @map("tmdb_person_id")
+  name          String
+  job           String
+
+  // Relations
+  movie         Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, tmdbPersonId, job])
+  @@index([name, job])
+  @@map("crew_members")
+}
+
+// ============================================================================
+// GROUP STATISTICS
+// ============================================================================
+
+model GroupStats {
+  id                        String   @id @default("singleton")
+  totalMinutesWatched       Int      @default(0) @map("total_minutes_watched")
+  totalOscarNominations     Int      @default(0) @map("total_oscar_nominations")
+  totalOscarWins            Int      @default(0) @map("total_oscar_wins")
+  mostNominationsMovieTitle String?  @map("most_nominations_movie_title")
+  mostNominationsCount      Int      @default(0) @map("most_nominations_count")
+  mostWinsMovieTitle        String?  @map("most_wins_movie_title")
+  mostWinsCount             Int      @default(0) @map("most_wins_count")
+  mostWatchedActorName      String?  @map("most_watched_actor_name")
+  mostWatchedActorCount     Int      @default(0) @map("most_watched_actor_count")
+  mostWatchedActressName    String?  @map("most_watched_actress_name")
+  mostWatchedActressCount   Int      @default(0) @map("most_watched_actress_count")
+  mostWatchedDirectorName   String?  @map("most_watched_director_name")
+  mostWatchedDirectorCount  Int      @default(0) @map("most_watched_director_count")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("group_stats")
 }
 
 // ============================================================================

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fetchCreditsForMovie, delay } from "@/lib/tmdb-credits";
+import { updateGroupStats } from "@/lib/group-stats";
 
 export async function POST() {
   try {
@@ -87,6 +89,69 @@ export async function POST() {
         completedAt: remainingAvailableIds.length === 0 ? new Date() : null,
       },
     });
+
+    // Step 5: Fetch and store credits for movies that just became WATCHED
+    // (the ones that were previously CURRENT)
+    const previouslyCurrentMovies = await prisma.movie.findMany({
+      where: {
+        status: "WATCHED",
+        tmdbId: { not: null },
+        castMembers: { none: {} }, // Only fetch if no cast members yet
+      },
+      select: { id: true, tmdbId: true, title: true },
+    });
+
+    for (const movie of previouslyCurrentMovies) {
+      if (!movie.tmdbId) continue;
+
+      const credits = await fetchCreditsForMovie(movie.tmdbId);
+      if (credits) {
+        // Store cast members
+        for (const cast of credits.cast) {
+          await prisma.castMember.upsert({
+            where: {
+              movieId_tmdbPersonId: {
+                movieId: movie.id,
+                tmdbPersonId: cast.tmdbPersonId,
+              },
+            },
+            update: {},
+            create: {
+              movieId: movie.id,
+              tmdbPersonId: cast.tmdbPersonId,
+              name: cast.name,
+              gender: cast.gender,
+              castOrder: cast.castOrder,
+            },
+          });
+        }
+
+        // Store directors
+        for (const director of credits.directors) {
+          await prisma.crewMember.upsert({
+            where: {
+              movieId_tmdbPersonId_job: {
+                movieId: movie.id,
+                tmdbPersonId: director.tmdbPersonId,
+                job: "Director",
+              },
+            },
+            update: {},
+            create: {
+              movieId: movie.id,
+              tmdbPersonId: director.tmdbPersonId,
+              name: director.name,
+              job: "Director",
+            },
+          });
+        }
+      }
+
+      await delay(350); // Rate limiting for TMDB API
+    }
+
+    // Step 6: Update group statistics
+    await updateGroupStats();
 
     // Get details of users who picked
     const pickerDetails = await prisma.user.findMany({

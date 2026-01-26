@@ -6,6 +6,7 @@ import { ProfilePictureUpload } from "@/components/profile-picture-upload";
 import { MovieCard } from "@/components/movie-card";
 import { Button } from "@/components/ui/button";
 import { MoviePicker } from "@/components/movie-picker";
+import { GroupStatistics, GroupStatsData } from "@/components/group-statistics";
 import Image from "next/image";
 
 type Movie = {
@@ -15,6 +16,7 @@ type Movie = {
   pickerName: string;
   pickerProfilePicture: string | null;
   year?: number;
+  userRating?: number;
 };
 
 type User = {
@@ -47,6 +49,7 @@ export default function ProfilePage() {
   const [personalTop4, setPersonalTop4] = useState<Movie[]>([]);
   const [personalPicks, setPersonalPicks] = useState<Movie[]>([]);
   const [pickerStatus, setPickerStatus] = useState<PickerStatus | null>(null);
+  const [groupStats, setGroupStats] = useState<GroupStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const [deletingPick, setDeletingPick] = useState(false);
@@ -58,11 +61,12 @@ export default function ProfilePage() {
     async function fetchData() {
       try {
         setLoading(true);
-        const [userRes, top4Res, picksRes, statusRes] = await Promise.all([
+        const [userRes, top4Res, picksRes, statusRes, groupStatsRes] = await Promise.all([
           fetch("/api/user/profile"),
           fetch("/api/user/top-4"),
           fetch("/api/user/picks"),
           fetch("/api/user/picker-status"),
+          fetch("/api/group/stats"),
         ]);
 
         if (userRes.ok) {
@@ -83,6 +87,11 @@ export default function ProfilePage() {
         if (statusRes.ok) {
           const statusData = await statusRes.json();
           setPickerStatus(statusData);
+        }
+
+        if (groupStatsRes.ok) {
+          const groupStatsData = await groupStatsRes.json();
+          setGroupStats(groupStatsData);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -196,6 +205,9 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Group Statistics */}
+        <GroupStatistics stats={groupStats} />
+
         {/* Movie Picker Status Section */}
         {pickerStatus && pickerStatus.status !== "not_in_queue" && (
           <section className="flex flex-col items-center">
@@ -290,6 +302,7 @@ export default function ProfilePage() {
                   posterUrl={movie.posterUrl}
                   pickerName={movie.pickerName}
                   pickerProfilePicture={movie.pickerProfilePicture}
+                  userRating={movie.userRating}
                   borderStyle="gold"
                 />
               ))}
