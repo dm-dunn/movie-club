@@ -107,9 +107,9 @@ export function CurrentWatchlist({ movies, onRefresh }: CurrentWatchlistProps) {
             No movies in the watchlist yet
           </p>
         ) : (
-          <div className="flex flex-wrap gap-4 justify-center max-w-[800px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center w-full max-w-[800px]">
             {movies.map((movie) => (
-              <div key={movie.id} className="flex flex-col items-center gap-2">
+              <div key={movie.id} className="flex flex-col items-center gap-2 w-full max-w-[185px]">
                 <MovieCard
                   title={movie.title}
                   posterUrl={movie.posterUrl}
