@@ -88,8 +88,10 @@ export function GroupStatsSidebar({ stats, side }: GroupStatsSidebarProps) {
   const { leftStats, rightStats } = getStatsArrays(stats);
   const statsToShow = side === "left" ? leftStats : rightStats;
 
+  const positionClass = side === "left" ? "ml-4" : "mr-4";
+
   return (
-    <div className="hidden lg:flex flex-col justify-evenly py-6 min-w-[180px]">
+    <div className={`hidden lg:flex flex-col justify-around py-8 min-w-[180px] ${positionClass}`}>
       {statsToShow.map((stat, index) => (
         <StatItem key={index} label={stat.label} value={stat.value} />
       ))}

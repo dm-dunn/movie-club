@@ -89,30 +89,37 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content with Stats Sidebars */}
-      <div className="flex justify-center">
-        {/* Left Stats Sidebar */}
-        <GroupStatsSidebar stats={groupStats} side="left" />
+      {/* Main Content */}
+      <main className="px-4 py-6">
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-secondary">Loading...</p>
+          </div>
+        ) : (
+          <>
+            {/* Watchlist and Hall of Fame with Stats Sidebars */}
+            <div className="flex justify-center">
+              {/* Left Stats Sidebar */}
+              <GroupStatsSidebar stats={groupStats} side="left" />
 
-        {/* Main Content */}
-        <main className="flex-1 max-w-4xl px-4 py-6 space-y-8">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-secondary">Loading...</p>
+              {/* Center Content */}
+              <div className="flex-1 max-w-4xl space-y-8">
+                <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
+                <HallOfFame movies={hallOfFame} />
+              </div>
+
+              {/* Right Stats Sidebar */}
+              <GroupStatsSidebar stats={groupStats} side="right" />
             </div>
-          ) : (
-            <>
-              <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
-              <HallOfFame movies={hallOfFame} />
+
+            {/* Mobile Stats and Coming Soon - outside the sidebar layout */}
+            <div className="max-w-4xl mx-auto space-y-8">
               <GroupStatsMobile stats={groupStats} />
               <ComingSoon />
-            </>
-          )}
-        </main>
-
-        {/* Right Stats Sidebar */}
-        <GroupStatsSidebar stats={groupStats} side="right" />
-      </div>
+            </div>
+          </>
+        )}
+      </main>
     </div>
   );
 }
