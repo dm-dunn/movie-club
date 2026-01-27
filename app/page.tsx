@@ -6,6 +6,7 @@ import { User } from "lucide-react";
 import { CurrentWatchlist } from "@/components/current-watchlist";
 import { HallOfFame } from "@/components/hall-of-fame";
 import { ComingSoon } from "@/components/coming-soon";
+import { GroupStatistics, GroupStatsData } from "@/components/group-statistics";
 import { Button } from "@/components/ui/button";
 
 type Movie = {
@@ -30,15 +31,17 @@ type HallOfFameMovie = {
 export default function Home() {
   const [watchlist, setWatchlist] = useState<Movie[]>([]);
   const [hallOfFame, setHallOfFame] = useState<HallOfFameMovie[]>([]);
+  const [groupStats, setGroupStats] = useState<GroupStatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch data from API on mount
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [watchlistRes, hallOfFameRes] = await Promise.all([
+      const [watchlistRes, hallOfFameRes, groupStatsRes] = await Promise.all([
         fetch("/api/movies/current"),
         fetch("/api/movies/hall-of-fame"),
+        fetch("/api/group/stats"),
       ]);
 
       if (watchlistRes.ok) {
@@ -49,6 +52,11 @@ export default function Home() {
       if (hallOfFameRes.ok) {
         const hallOfFameData = await hallOfFameRes.json();
         setHallOfFame(hallOfFameData);
+      }
+
+      if (groupStatsRes.ok) {
+        const groupStatsData = await groupStatsRes.json();
+        setGroupStats(groupStatsData);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -91,6 +99,7 @@ export default function Home() {
           <>
             <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
             <HallOfFame movies={hallOfFame} />
+            <GroupStatistics stats={groupStats} />
             <ComingSoon />
           </>
         )}
