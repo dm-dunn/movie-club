@@ -16,11 +16,12 @@ export interface GroupStatsData {
   mostWatchedDirectorCount: number;
 }
 
-interface GroupStatisticsProps {
-  stats: GroupStatsData | null;
+interface StatItemProps {
+  label: string;
+  value: string;
 }
 
-function StatItem({ label, value }: { label: string; value: string }) {
+function StatItem({ label, value }: StatItemProps) {
   return (
     <div className="text-center">
       <h3 className="text-sm font-medium text-secondary/70">{label}</h3>
@@ -29,11 +30,12 @@ function StatItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function GroupStatistics({ stats }: GroupStatisticsProps) {
-  if (!stats) {
-    return null;
-  }
+interface GroupStatsSidebarProps {
+  stats: GroupStatsData | null;
+  side: "left" | "right";
+}
 
+function getStatsArrays(stats: GroupStatsData) {
   const totalHours = (stats.totalMinutesWatched / 60).toFixed(1);
 
   const leftStats = [
@@ -75,19 +77,43 @@ export function GroupStatistics({ stats }: GroupStatisticsProps) {
     },
   ];
 
+  return { leftStats, rightStats };
+}
+
+export function GroupStatsSidebar({ stats, side }: GroupStatsSidebarProps) {
+  if (!stats) {
+    return null;
+  }
+
+  const { leftStats, rightStats } = getStatsArrays(stats);
+  const statsToShow = side === "left" ? leftStats : rightStats;
+
   return (
-    <section className="flex flex-col items-center w-full">
-      <div className="w-full max-w-[1000px] flex items-start justify-between gap-8">
+    <div className="hidden lg:flex flex-col gap-8 pt-16 min-w-[180px]">
+      {statsToShow.map((stat, index) => (
+        <StatItem key={index} label={stat.label} value={stat.value} />
+      ))}
+    </div>
+  );
+}
+
+// Mobile version - shows all stats at bottom
+export function GroupStatsMobile({ stats }: { stats: GroupStatsData | null }) {
+  if (!stats) {
+    return null;
+  }
+
+  const { leftStats, rightStats } = getStatsArrays(stats);
+
+  return (
+    <section className="lg:hidden flex flex-col items-center w-full py-8">
+      <h2 className="text-2xl font-bold text-secondary mb-6">Group Statistics</h2>
+      <div className="w-full max-w-[600px] flex justify-between gap-8 px-4">
         {/* Left Stats Column */}
         <div className="flex flex-col gap-6">
           {leftStats.map((stat, index) => (
             <StatItem key={index} label={stat.label} value={stat.value} />
           ))}
-        </div>
-
-        {/* Center Title */}
-        <div className="flex-1 flex items-center justify-center">
-          <h2 className="text-2xl font-bold text-secondary">Group Statistics</h2>
         </div>
 
         {/* Right Stats Column */}

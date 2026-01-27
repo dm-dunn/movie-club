@@ -6,7 +6,7 @@ import { User } from "lucide-react";
 import { CurrentWatchlist } from "@/components/current-watchlist";
 import { HallOfFame } from "@/components/hall-of-fame";
 import { ComingSoon } from "@/components/coming-soon";
-import { GroupStatistics, GroupStatsData } from "@/components/group-statistics";
+import { GroupStatsSidebar, GroupStatsMobile, GroupStatsData } from "@/components/group-statistics";
 import { Button } from "@/components/ui/button";
 
 type Movie = {
@@ -89,21 +89,30 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 space-y-8">
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-secondary">Loading...</p>
-          </div>
-        ) : (
-          <>
-            <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
-            <HallOfFame movies={hallOfFame} />
-            <GroupStatistics stats={groupStats} />
-            <ComingSoon />
-          </>
-        )}
-      </main>
+      {/* Main Content with Stats Sidebars */}
+      <div className="flex justify-center">
+        {/* Left Stats Sidebar */}
+        <GroupStatsSidebar stats={groupStats} side="left" />
+
+        {/* Main Content */}
+        <main className="flex-1 max-w-4xl px-4 py-6 space-y-8">
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-secondary">Loading...</p>
+            </div>
+          ) : (
+            <>
+              <CurrentWatchlist movies={watchlist} onRefresh={fetchData} />
+              <HallOfFame movies={hallOfFame} />
+              <GroupStatsMobile stats={groupStats} />
+              <ComingSoon />
+            </>
+          )}
+        </main>
+
+        {/* Right Stats Sidebar */}
+        <GroupStatsSidebar stats={groupStats} side="right" />
+      </div>
     </div>
   );
 }
