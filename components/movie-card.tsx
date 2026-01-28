@@ -47,8 +47,12 @@ export function MovieCard({
   };
 
   return (
-    <div className={`w-[180px] flex flex-col gap-2 ${containerClasses[borderStyle]}`}>
-      <div className={`relative aspect-[2/3] w-full bg-muted/50 overflow-hidden ${borderClasses[borderStyle]}`}>
+    <div
+      className={`w-[180px] flex flex-col gap-2 ${containerClasses[borderStyle]}`}
+    >
+      <div
+        className={`relative aspect-[2/3] w-full bg-muted/50 overflow-hidden ${borderClasses[borderStyle]}`}
+      >
         {posterUrl ? (
           <Image
             src={posterUrl}
@@ -63,7 +67,9 @@ export function MovieCard({
           </div>
         )}
       </div>
-      <div className={`flex flex-col gap-0.5 ${textMarginClasses[borderStyle]}`}>
+      <div
+        className={`flex flex-col gap-1.5 ${textMarginClasses[borderStyle]}`}
+      >
         <p className="font-semibold text-xs line-clamp-2 text-secondary">
           {title}
         </p>
@@ -83,7 +89,9 @@ export function MovieCard({
             </AvatarFallback>
           </Avatar>
           <p className="text-[10px] text-secondary">
-            {pickerName === "Extra Credit" ? pickerName : `Picked by ${pickerName}`}
+            {pickerName === "Extra Credit"
+              ? pickerName
+              : `Picked by ${pickerName}`}
           </p>
         </div>
       </div>
