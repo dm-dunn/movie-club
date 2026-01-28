@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StarRating } from "@/components/star-rating";
 
 interface MovieCardProps {
   title: string;
@@ -72,9 +73,7 @@ export function MovieCard({
           </p>
         )}
         {userRating !== undefined && (
-          <p className="text-[10px] text-accent font-medium">
-            My Ranking: {userRating.toFixed(1)}
-          </p>
+          <StarRating value={userRating} size={14} readOnly />
         )}
         <div className="flex items-center gap-1.5">
           <Avatar className="h-4 w-4">
